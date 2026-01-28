@@ -14,11 +14,14 @@ const SYNC_MODE = 'supabase';
 const SUPABASE_URL = 'https://rtnsbmoatuocymrsdorj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0bnNibW9hdHVvY3ltcnNkb3JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjA5NzQsImV4cCI6MjA4MzQzNjk3NH0.-uKLv5sBlUWB19LmA_UH5eMPenkmD1xsIBP43i0BK8U';
 
-// R2 Video CDN
+// R2 Video CDN - Old bucket (first 10 reels)
 const R2_BASE = 'https://pub-80916ecd31064b1bb21b62cf3490e8a3.r2.dev';
+// New bucket (additional reels)
+const R2_BASE_NEW = 'https://pub-cfac2a567df745d9869da856f2b8f976.r2.dev';
 
-// Reel data
+// Reel data - 50 total reels
 const MOCK_REELS = [
+  // Original 10 reels from old bucket
   { id: 'reel-1', number: 1, contestant: 'Arjun Mehta', category: 'Dance', duration: 45, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-01.mp4` },
   { id: 'reel-2', number: 2, contestant: 'Priya Sharma', category: 'Comedy', duration: 30, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-02.mp4` },
   { id: 'reel-3', number: 3, contestant: 'Rahul Verma', category: 'Music', duration: 60, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-03.mp4` },
@@ -29,6 +32,48 @@ const MOCK_REELS = [
   { id: 'reel-8', number: 8, contestant: 'Kavya Nair', category: 'Dance', duration: 45, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-08.mp4` },
   { id: 'reel-9', number: 9, contestant: 'Rohan Joshi', category: 'Comedy', duration: 40, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-09.mp4` },
   { id: 'reel-10', number: 10, contestant: 'Simran Kaur', category: 'Drama', duration: 60, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-10.mp4` },
+
+  // 40 new reels from new bucket
+  { id: 'reel-11', number: 11, contestant: 'Ishaan Reddy', category: 'Music', duration: 48, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-11.mp4` },
+  { id: 'reel-12', number: 12, contestant: 'Zara Khan', category: 'Dance', duration: 42, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-12.mp4` },
+  { id: 'reel-13', number: 13, contestant: 'Dev Malhotra', category: 'Comedy', duration: 35, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-13.mp4` },
+  { id: 'reel-14', number: 14, contestant: 'Meera Iyer', category: 'Drama', duration: 52, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-14.mp4` },
+  { id: 'reel-15', number: 15, contestant: 'Karan Bhatia', category: 'Music', duration: 55, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-15.mp4` },
+  { id: 'reel-16', number: 16, contestant: 'Aarti Desai', category: 'Dance', duration: 44, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-16.mp4` },
+  { id: 'reel-17', number: 17, contestant: 'Siddharth Roy', category: 'Comedy', duration: 38, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-17.mp4` },
+  { id: 'reel-18', number: 18, contestant: 'Riya Pillai', category: 'Drama', duration: 50, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-18.mp4` },
+  { id: 'reel-19', number: 19, contestant: 'Aryan Chopra', category: 'Music', duration: 46, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-19.mp4` },
+  { id: 'reel-20', number: 20, contestant: 'Diya Menon', category: 'Dance', duration: 43, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-20.mp4` },
+  { id: 'reel-21', number: 21, contestant: 'Tanvi Agarwal', category: 'Comedy', duration: 32, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-21.mp4` },
+  { id: 'reel-22', number: 22, contestant: 'Nikhil Shetty', category: 'Drama', duration: 58, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-22.mp4` },
+  { id: 'reel-23', number: 23, contestant: 'Pooja Bajaj', category: 'Music', duration: 51, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-23.mp4` },
+  { id: 'reel-24', number: 24, contestant: 'Yash Thakur', category: 'Dance', duration: 47, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-24.mp4` },
+  { id: 'reel-25', number: 25, contestant: 'Sneha Rao', category: 'Comedy', duration: 36, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-25.mp4` },
+  { id: 'reel-26', number: 26, contestant: 'Kabir Ahuja', category: 'Drama', duration: 54, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-26.mp4` },
+  { id: 'reel-27', number: 27, contestant: 'Naina Sen', category: 'Music', duration: 49, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-27.mp4` },
+  { id: 'reel-28', number: 28, contestant: 'Vihaan Saxena', category: 'Dance', duration: 41, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-28.mp4` },
+  { id: 'reel-29', number: 29, contestant: 'Isha Tiwari', category: 'Comedy', duration: 34, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-29.mp4` },
+  { id: 'reel-30', number: 30, contestant: 'Arnav Kulkarni', category: 'Drama', duration: 56, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-30.mp4` },
+  { id: 'reel-31', number: 31, contestant: 'Tara Jain', category: 'Music', duration: 53, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-31.mp4` },
+  { id: 'reel-32', number: 32, contestant: 'Reyansh Ghosh', category: 'Dance', duration: 45, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-32.mp4` },
+  { id: 'reel-33', number: 33, contestant: 'Aanya Banerjee', category: 'Comedy', duration: 37, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-33.mp4` },
+  { id: 'reel-34', number: 34, contestant: 'Shaurya Mishra', category: 'Drama', duration: 59, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-34.mp4` },
+  { id: 'reel-35', number: 35, contestant: 'Kiara Das', category: 'Music', duration: 48, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-35.mp4` },
+  { id: 'reel-36', number: 36, contestant: 'Advait Pandey', category: 'Dance', duration: 46, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-36.mp4` },
+  { id: 'reel-37', number: 37, contestant: 'Sara Mathur', category: 'Comedy', duration: 33, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-37.mp4` },
+  { id: 'reel-38', number: 38, contestant: 'Atharv Shah', category: 'Drama', duration: 57, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-38.mp4` },
+  { id: 'reel-39', number: 39, contestant: 'Myra Kapoor', category: 'Music', duration: 52, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-39.mp4` },
+  { id: 'reel-40', number: 40, contestant: 'Vivaan Dutta', category: 'Dance', duration: 44, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-40.mp4` },
+  { id: 'reel-41', number: 41, contestant: 'Anvi Sinha', category: 'Comedy', duration: 39, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-41.mp4` },
+  { id: 'reel-42', number: 42, contestant: 'Dhruv Chatterjee', category: 'Drama', duration: 55, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-42.mp4` },
+  { id: 'reel-43', number: 43, contestant: 'Navya Arora', category: 'Music', duration: 50, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-43.mp4` },
+  { id: 'reel-44', number: 44, contestant: 'Aarav Nambiar', category: 'Dance', duration: 43, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-44.mp4` },
+  { id: 'reel-45', number: 45, contestant: 'Saanvi Goyal', category: 'Comedy', duration: 31, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-45.mp4` },
+  { id: 'reel-46', number: 46, contestant: 'Rudra Bhatt', category: 'Drama', duration: 60, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-46.mp4` },
+  { id: 'reel-47', number: 47, contestant: 'Shanaya Kohli', category: 'Music', duration: 47, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-47.mp4` },
+  { id: 'reel-48', number: 48, contestant: 'Ayaan Prasad', category: 'Dance', duration: 42, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-48.mp4` },
+  { id: 'reel-49', number: 49, contestant: 'Pari Varma', category: 'Comedy', duration: 36, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-49.mp4` },
+  { id: 'reel-50', number: 50, contestant: 'Veer Choudhury', category: 'Drama', duration: 53, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/reel-50.mp4` },
 ];
 
 // ============================================
