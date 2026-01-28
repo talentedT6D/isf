@@ -1,0 +1,14 @@
+videos/
+deploy/
+ref/
+*.tgz
+*.sh
+supabase/
+.claude/
+Archive.zip
+node_modules/
+stress-test-logs/
+voter-*.txt
+control-*.txt
+*.png
+!ISF logos_2.png

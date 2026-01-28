@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Vote - ISF</title>
+  <link rel="icon" type="image/png" href="ISF logos_2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --glass-dark: rgba(255, 255, 255, 0.08);
+      --glass-dark-strong: rgba(255, 255, 255, 0.12);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --glass-blur: 20px;
+      --text-light: #ffffff;
+      --text-medium: rgba(255, 255, 255, 0.7);
+      --text-muted: rgba(255, 255, 255, 0.5);
+      --accent-pink: #FF3366;
+      --accent-coral: #FF6B6B;
+      --accent-orange: #FF8C42;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+      background-attachment: fixed;
+      color: var(--text-light);
+    }
+
+    /* Logo - Fixed Top Left */
+    .logo-watermark {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      width: 50px;
+      height: auto;
+      z-index: 1000;
+    }
+
+    /* Reel Counter - Fixed Top Right */
+    .reel-counter {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      padding: 0.5rem 1.2rem;
+      background: var(--glass-dark-strong);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-light);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .connection-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+      transition: background 0.3s ease;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .connection-indicator.disconnected {
+      background: #f87171;
+      animation: none;
+    }
+
+    .connection-indicator.reconnecting {
+      background: #fbbf24;
+      animation: blink 0.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Floating gradient blobs for depth */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .blob-1 {
+      width: 300px;
+      height: 300px;
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+      top: 10%;
+      right: -50px;
+      animation: blobFloat 15s ease-in-out infinite;
+    }
+
+    .blob-2 {
+      width: 250px;
+      height: 250px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      bottom: 20%;
+      left: -80px;
+      animation: blobFloat 20s ease-in-out infinite reverse;
+    }
+
+    .blob-3 {
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, #FF6B95 0%, #ec4899 100%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: blobFloat 18s ease-in-out infinite;
+    }
+
+    @keyframes blobFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(20px, -30px) scale(1.1); }
+      66% { transform: translate(-15px, 15px) scale(0.9); }
+    }
+
+    /* Full screen reel container */
+    .reel-container {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 1;
+    }
+
+
+    /* Main content area */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+      padding-top: 120px;
+      padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* Contestant card */
+    .contestant-card {
+      background: var(--glass-dark);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Inner gradient glow */
+    .contestant-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -30%;
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.2) 0%, rgba(255, 140, 66, 0.15) 100%);
+      border-radius: 50%;
+      filter: blur(40px);
+      pointer-events: none;
+    }
+
+    .contestant-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .contestant-avatar {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #FF6B95 0%, #FFC3A0 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 25px rgba(255, 107, 149, 0.35);
+    }
+
+    .contestant-avatar svg {
+      width: 30px;
+      height: 30px;
+      color: white;
+    }
+
+    .contestant-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      min-width: 0;
+      gap: 0.35rem;
+    }
+
+    .contestant-details h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-light);
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
+    }
+
+    .contestant-category {
+      display: inline-block;
+      width: auto;
+      max-width: fit-content;
+      padding: 0.45rem 0.9rem 0.5rem 0.9rem;
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.2) 0%, rgba(255, 140, 66, 0.15) 100%);
+      border: 1px solid rgba(255, 107, 149, 0.3);
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      line-height: 1;
+      color: #FF6B95;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    /* 3D Score Display */
+    .score-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .score-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .score-value-display {
+      font-size: 6rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 1;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      line-height: 1;
+    }
+
+    .score-value-display.bump {
+      transform: scale(1.15) rotate(2deg);
+    }
+
+    /* Horizontal slider */
+    .slider-container {
+      background: var(--glass-dark);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 1.5rem 1rem;
+      margin-bottom: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slider-container::before {
+      content: '';
+      position: absolute;
+      bottom: -30%;
+      left: -20%;
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);
+      border-radius: 50%;
+      filter: blur(30px);
+      pointer-events: none;
+    }
+
+    .horizontal-slider {
+      width: 100%;
+      height: 40px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
+    }
+
+    .horizontal-slider::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, #FF6B95 0%, #FF8C42 100%);
+      border-radius: 4px;
+      box-shadow: 0 2px 10px rgba(255, 107, 149, 0.3);
+    }
+
+    .horizontal-slider::-moz-range-track {
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, #FF6B95 0%, #FF8C42 100%);
+      border-radius: 4px;
+      box-shadow: 0 2px 10px rgba(255, 107, 149, 0.3);
+    }
+
+    .horizontal-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+      border-radius: 50%;
+      border: 3px solid #FF6B95;
+      box-shadow: 0 4px 15px rgba(255, 107, 149, 0.5);
+      margin-top: -10px;
+      cursor: grab;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .horizontal-slider::-moz-range-thumb {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+      border-radius: 50%;
+      border: 3px solid #FF6B95;
+      box-shadow: 0 4px 15px rgba(255, 107, 149, 0.5);
+      cursor: grab;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .horizontal-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(255, 107, 149, 0.6);
+    }
+
+    .horizontal-slider::-moz-range-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(255, 107, 149, 0.6);
+    }
+
+    .horizontal-slider::-webkit-slider-thumb:active {
+      cursor: grabbing;
+      transform: scale(1.05);
+    }
+
+    .horizontal-slider::-moz-range-thumb:active {
+      cursor: grabbing;
+      transform: scale(1.05);
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* Quick select buttons */
+    .quick-select {
+      display: flex;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+
+    .quick-btn {
+      padding: 0.5rem 1rem;
+      background: var(--glass-dark);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .quick-btn:hover {
+      background: var(--glass-dark-strong);
+      transform: translateY(-2px);
+      border-color: var(--accent-pink);
+    }
+
+    .quick-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Submit button */
+    .submit-btn {
+      width: 100%;
+      padding: 1.15rem;
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+      border: none;
+      border-radius: 16px;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(255, 107, 149, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(255, 107, 149, 0.5);
+    }
+
+    .submit-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .submit-btn:disabled {
+      background: var(--glass-dark);
+      color: var(--text-muted);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .submit-btn svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    /* Waiting overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(10, 10, 15, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.4s ease;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .overlay .spinner {
+      width: 60px;
+      height: 60px;
+      border: 3px solid rgba(255, 107, 149, 0.2);
+      border-top-color: #FF6B95;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 2rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .overlay h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-light);
+      margin-bottom: 0.5rem;
+    }
+
+    .overlay p {
+      color: var(--text-medium);
+    }
+
+    /* Success overlay */
+    .success-overlay .checkmark {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 15px 40px rgba(255, 107, 149, 0.4);
+      animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .checkmark svg {
+      width: 40px;
+      height: 40px;
+      color: white;
+    }
+
+    /* Focus states for accessibility */
+    .quick-btn:focus-visible,
+    .submit-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255, 107, 149, 0.5);
+    }
+
+    /* Respect reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Extra small phones (iPhone SE, mini) - 320px-375px */
+    @media screen and (max-width: 375px) {
+      .logo-watermark {
+        width: 40px;
+        top: 1rem;
+        left: 1rem;
+      }
+
+      .reel-counter {
+        top: 1rem;
+        right: 1rem;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.7rem;
+      }
+
+      .main-content {
+        padding: 1rem;
+        padding-top: 140px;
+        padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+      }
+
+      .contestant-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .contestant-avatar {
+        width: 50px;
+        height: 50px;
+      }
+
+      .contestant-avatar svg {
+        width: 25px;
+        height: 25px;
+      }
+
+      .contestant-details h2 {
+        font-size: 1.05rem;
+      }
+
+      .contestant-category {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.6rem;
+      }
+
+      .score-label {
+        font-size: 0.7rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .score-value-display {
+        font-size: 2.5rem;
+      }
+
+      .slider-container {
+        padding: 1rem;
+      }
+
+      .quick-select {
+        gap: 0.5rem;
+      }
+
+      .quick-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+      }
+
+      .submit-btn {
+        padding: 0.95rem;
+        font-size: 0.9rem;
+      }
+    }
+
+    /* Small phones (iPhone 12 mini, 13 mini) - 376px-390px */
+    @media screen and (min-width: 376px) and (max-width: 390px) {
+      .main-content {
+        padding-bottom: calc(1.75rem + env(safe-area-inset-bottom));
+      }
+
+      .contestant-details h2 {
+        font-size: 1.25rem;
+      }
+
+      .contestant-category {
+        font-size: 0.7rem;
+      }
+    }
+
+    /* Medium phones (iPhone 16 standard) - 391px-400px */
+    @media screen and (min-width: 391px) and (max-width: 400px) {
+      .main-content {
+        padding-top: 110px;
+        padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+      }
+
+      .contestant-card {
+        margin-bottom: 1.25rem;
+        padding: 1.15rem;
+      }
+
+      .contestant-details h2 {
+        font-size: 1.2rem;
+      }
+
+      .contestant-category {
+        font-size: 0.68rem;
+      }
+
+      .score-label {
+        font-size: 0.75rem;
+      }
+
+      .score-value-display {
+        font-size: 3.5rem;
+      }
+
+      .submit-btn {
+        padding: 1.05rem;
+      }
+    }
+
+    /* Larger phones (iPhone 14/15/16 Plus/Pro) - 401px-430px */
+    @media screen and (min-width: 401px) and (max-width: 430px) {
+      .main-content {
+        padding-top: 115px;
+      }
+
+      .contestant-details h2 {
+        font-size: 1.25rem;
+      }
+
+      .score-value-display {
+        font-size: 3.75rem;
+      }
+    }
+
+    /* Large phones (iPhone Pro Max, Plus, Android) - 431px-480px */
+    @media screen and (min-width: 431px) and (max-width: 480px) {
+      .main-content {
+        padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+      }
+    }
+
+    /* Tablets and landscape phones - 481px+ */
+    @media screen and (min-width: 481px) {
+      .main-content {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Logo -->
+  <img src="ISF%20logos_2.png" alt="ISF Logo" class="logo-watermark" onerror="this.style.display='none'">
+
+  <!-- Reel Counter -->
+  <div class="reel-counter">
+    <span class="connection-indicator" id="connectionIndicator"></span>
+    <span id="reelCounter">Reel 1 of 10</span>
+  </div>
+
+  <!-- Floating blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <!-- Waiting overlay -->
+  <div class="overlay waiting-overlay active" id="waitingOverlay">
+    <div class="spinner"></div>
+    <h2>Waiting for Reel</h2>
+    <p>The show will begin shortly</p>
+  </div>
+
+  <!-- Success overlay -->
+  <div class="overlay success-overlay" id="successOverlay">
+    <div class="checkmark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <h2>Vote Submitted!</h2>
+    <p>Waiting for next reel...</p>
+  </div>
+
+  <div class="reel-container">
+    <main class="main-content">
+      <div class="contestant-card">
+        <div class="contestant-info">
+          <div class="contestant-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div class="contestant-details">
+            <h2 id="contestantName">Arjun Mehta</h2>
+            <span class="contestant-category" id="category">Dance</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="score-section">
+        <div class="score-label">Your Score</div>
+        <div class="score-value-display" id="scoreDisplay">50</div>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" class="horizontal-slider" id="horizontalSlider" min="0" max="100" value="50">
+        <div class="slider-labels">
+          <span>0</span>
+          <span>25</span>
+          <span>50</span>
+          <span>75</span>
+          <span>100</span>
+        </div>
+      </div>
+
+      <div class="quick-select">
+        <button class="quick-btn" data-value="25">25</button>
+        <button class="quick-btn" data-value="50">50</button>
+        <button class="quick-btn" data-value="75">75</button>
+        <button class="quick-btn" data-value="100">100</button>
+      </div>
+
+      <button class="submit-btn" id="submitBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        Submit Vote
+      </button>
+    </main>
+  </div>
+
+  <script src="sync.js"></script>
+  <script>
+    (function() {
+      var aifilms = window.AIFilms;
+      var currentReel = null;
+      var currentScore = 50;
+      var hasVoted = false;
+      var pendingReelChange = null;  // Track pending async operations
+      var lastReelId = null;  // Prevent duplicate processing
+
+      function setSliderValue(score) {
+        var slider = document.getElementById('horizontalSlider');
+        slider.value = score;
+      }
+
+      function setupHorizontalSlider() {
+        var slider = document.getElementById('horizontalSlider');
+        slider.addEventListener('input', function() {
+          var value = parseInt(slider.value);
+          updateScore(value);
+        });
+      }
+
+      function updateScore(score) {
+        currentScore = score;
+        var display = document.getElementById('scoreDisplay');
+        display.textContent = score;
+        display.classList.add('bump');
+        setTimeout(function() {
+          display.classList.remove('bump');
+        }, 200);
+
+        if (navigator.vibrate) navigator.vibrate(10);
+      }
+
+      function setupQuickSelect() {
+        document.querySelectorAll('.quick-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var value = parseInt(btn.dataset.value);
+            setSliderValue(value);
+            updateScore(value);
+          });
+        });
+      }
+
+      function updateConnectionIndicator(status) {
+        var indicator = document.getElementById('connectionIndicator');
+        indicator.classList.remove('disconnected', 'reconnecting');
+
+        if (status === 'disconnected') {
+          indicator.classList.add('disconnected');
+        } else if (status === 'reconnecting') {
+          indicator.classList.add('reconnecting');
+        }
+        // Default (no class) = connected state (green)
+      }
+
+      function init() {
+        setupHorizontalSlider();
+        setupQuickSelect();
+
+        // Check if control panel has broadcasted state
+        var state = aifilms.sync.getState();
+        var hasControlPanelState = state.reelIndex !== undefined && state.syncTimestamp;
+
+        if (hasControlPanelState) {
+          // Control panel is active, show current reel
+          console.log('Control panel detected, showing reel', state.reelIndex);
+          showReel(aifilms.MOCK_REELS[state.reelIndex]);
+        } else {
+          // No control panel activity yet, keep waiting overlay visible
+          console.log('No control panel activity, showing waiting overlay');
+        }
+
+        aifilms.sync.on('reel-change', function(data) {
+          console.log('Received reel-change event:', data);
+          var reel = aifilms.MOCK_REELS[data.reelIndex];
+          showReel(reel);
+        });
+
+        // Handle state sync from control panel (on reconnect)
+        aifilms.sync.on('state-sync', function(data) {
+          console.log('Received state sync, syncing to reel', data.reelIndex);
+          var reel = aifilms.MOCK_REELS[data.reelIndex];
+          showReel(reel);
+        });
+
+        // Connection state monitoring
+        aifilms.sync.on('connected', function() {
+          console.log('Connected to server');
+          updateConnectionIndicator('connected');
+        });
+
+        aifilms.sync.on('disconnected', function(status) {
+          console.warn('Disconnected from server:', status);
+          updateConnectionIndicator('reconnecting');
+
+          // Try to reconnect after 2 seconds
+          setTimeout(function() {
+            if (!aifilms.sync.isConnected) {
+              updateConnectionIndicator('disconnected');
+            }
+          }, 2000);
+        });
+
+        // Set initial state
+        updateConnectionIndicator(aifilms.sync.isConnected ? 'connected' : 'disconnected');
+
+        document.getElementById('submitBtn').addEventListener('click', submitVote);
+      }
+
+      async function showReel(reel) {
+        // Prevent duplicate processing of the same reel
+        if (lastReelId === reel.id && currentReel && currentReel.id === reel.id) {
+          console.log('Ignoring duplicate reel-change for', reel.id);
+          return;
+        }
+
+        // Cancel any pending reel change operations
+        if (pendingReelChange) {
+          console.log('Cancelling pending reel change operation');
+          pendingReelChange.cancelled = true;
+        }
+
+        // Create new operation token
+        var thisOperation = { cancelled: false, reelId: reel.id };
+        pendingReelChange = thisOperation;
+        lastReelId = reel.id;
+
+        // Update current reel and reset vote state immediately
+        currentReel = reel;
+        hasVoted = false;
+
+        // Update UI immediately (synchronous operations)
+        document.getElementById('waitingOverlay').classList.remove('active');
+        document.getElementById('successOverlay').classList.remove('active');
+
+        document.getElementById('reelCounter').textContent = 'Reel ' + reel.number + ' of ' + aifilms.MOCK_REELS.length;
+        document.getElementById('contestantName').textContent = reel.contestant;
+        document.getElementById('category').textContent = reel.category;
+
+        currentScore = 50;
+        setSliderValue(50);
+        updateScore(50);
+
+        // Check if already voted for this reel (async with timeout and cancellation)
+        try {
+          // Race between the actual query and a 5-second timeout
+          const timeoutPromise = new Promise(function(_, reject) {
+            setTimeout(function() { reject(new Error('Vote check timeout')); }, 5000);
+          });
+
+          const votePromise = aifilms.voteStore.getMyVote(reel.id);
+          const existingVote = await Promise.race([votePromise, timeoutPromise]);
+
+          // Check if this operation was cancelled while waiting
+          if (thisOperation.cancelled) {
+            console.log('Operation cancelled after async call for', reel.id);
+            return;
+          }
+
+          // Verify we're still on the same reel (double-check)
+          if (currentReel && currentReel.id === reel.id && existingVote !== null) {
+            hasVoted = true;
+            currentScore = existingVote;
+            setSliderValue(existingVote);
+            updateScore(existingVote);
+            document.getElementById('successOverlay').classList.add('active');
+          }
+        } catch (err) {
+          // Only log if operation wasn't cancelled
+          if (!thisOperation.cancelled) {
+            console.log('Could not check existing vote:', err.message || err);
+          }
+        } finally {
+          // Clear pending operation if it's still this one
+          if (pendingReelChange === thisOperation) {
+            pendingReelChange = null;
+          }
+        }
+      }
+
+      function submitVote() {
+        if (!currentReel) return;
+
+        aifilms.voteStore.saveVote(currentReel.id, currentScore, 'audience');
+        aifilms.sync.broadcast('vote', {
+          reelId: currentReel.id,
+          score: currentScore,
+          voterType: 'audience'
+        });
+
+        hasVoted = true;
+        document.getElementById('successOverlay').classList.add('active');
+
+        if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+      }
+
+      if (aifilms && aifilms.ready) {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        window.addEventListener('aifilms-ready', init);
+        document.addEventListener('DOMContentLoaded', function() {
+          if (window.AIFilms) {
+            aifilms = window.AIFilms;
+            init();
+          }
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

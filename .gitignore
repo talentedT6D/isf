@@ -1,0 +1,55 @@
+# Vercel
+.vercel
+
+# Dependencies
+node_modules/
+
+# Videos (too large for git)
+videos/
+*.mp4
+*.webm
+*.mov
+
+# Large archives
+*.zip
+*.tgz
+*.tar.gz
+Archive.zip
+
+# Build outputs
+deploy/
+dist/
+build/
+
+# Test outputs
+stress-test-logs/
+voter-*.txt
+control-*.txt
+
+# Screenshots (except logo)
+control-reel-*.png
+screenshot-*.png
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+ref/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Claude AI files
+.claude/

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Judges Portal - ISF</title>
+  <link rel="icon" type="image/png" href="ISF logos_2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --glass-dark: rgba(255, 255, 255, 0.08);
+      --glass-dark-strong: rgba(255, 255, 255, 0.12);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --glass-blur: 20px;
+      --text-light: #ffffff;
+      --text-medium: rgba(255, 255, 255, 0.7);
+      --text-muted: rgba(255, 255, 255, 0.5);
+      --accent-pink: #FF6B95;
+      --accent-orange: #FF8C42;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+      min-height: 100vh;
+      color: var(--text-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      padding-top: 80px;
+    }
+
+    /* Logo Watermark - Top Left */
+    .logo-watermark {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      width: 60px;
+      height: auto;
+      opacity: 0.8;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    /* Floating blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .blob-1 {
+      width: 400px;
+      height: 400px;
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+      top: -100px;
+      right: -100px;
+      animation: blobFloat 20s ease-in-out infinite;
+    }
+
+    .blob-2 {
+      width: 350px;
+      height: 350px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      bottom: 10%;
+      left: -80px;
+      animation: blobFloat 25s ease-in-out infinite reverse;
+    }
+
+    .blob-3 {
+      width: 300px;
+      height: 300px;
+      background: linear-gradient(135deg, #FF6B95 0%, #ec4899 100%);
+      top: 40%;
+      right: 20%;
+      animation: blobFloat 18s ease-in-out infinite;
+    }
+
+    @keyframes blobFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -40px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+
+    /* Login Container */
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Badge */
+    .portal-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.25rem;
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: white;
+      margin: 0 auto 2rem;
+      width: fit-content;
+      box-shadow: 0 8px 25px rgba(255, 107, 149, 0.4);
+    }
+
+    .portal-badge svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Login Card */
+    .login-card {
+      background: var(--glass-dark);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: 28px;
+      padding: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -30%;
+      width: 250px;
+      height: 250px;
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.2) 0%, rgba(255, 140, 66, 0.15) 100%);
+      border-radius: 50%;
+      filter: blur(50px);
+      pointer-events: none;
+    }
+
+    .login-card h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      color: var(--text-light);
+      position: relative;
+      z-index: 1;
+    }
+
+    .login-card .subtitle {
+      text-align: center;
+      color: var(--text-medium);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Form */
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-medium);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 1rem 1.25rem;
+      background: var(--glass-dark-strong);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      color: var(--text-light);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent-pink);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 0 3px rgba(255, 107, 149, 0.15);
+    }
+
+    .form-group input:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Submit Button */
+    .submit-btn {
+      width: 100%;
+      padding: 1.15rem;
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      border: none;
+      border-radius: 14px;
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(255, 107, 149, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      text-decoration: none;
+    }
+
+    .submit-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(255, 107, 149, 0.5);
+    }
+
+    .submit-btn:active {
+      transform: translateY(-1px);
+    }
+
+    /* Back Link */
+    .back-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .back-link svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .back-link:hover {
+      color: var(--text-light);
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Focus states for accessibility */
+    .submit-btn:focus-visible,
+    .form-group input:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255, 107, 149, 0.5);
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      body {
+        padding: 1rem;
+        padding-top: 80px;
+      }
+
+      .login-card {
+        padding: 2rem 1.5rem;
+        border-radius: 22px;
+      }
+
+      .login-card h1 {
+        font-size: 1.5rem;
+      }
+
+      .portal-badge {
+        font-size: 0.7rem;
+        padding: 0.5rem 1rem;
+      }
+
+      .logo-watermark {
+        width: 50px;
+      }
+
+      .blob-1 {
+        width: 250px;
+        height: 250px;
+      }
+
+      .blob-2 {
+        width: 200px;
+        height: 200px;
+      }
+
+      .blob-3 {
+        display: none;
+      }
+    }
+
+    /* Respect reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Logo Watermark - Top Left -->
+  <img src="ISF logos_2.png" alt="ISF Logo" class="logo-watermark">
+
+  <!-- Floating blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="login-container">
+    <!-- Badge -->
+    <div class="portal-badge">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+      </svg>
+      JUDGES PORTAL
+    </div>
+
+    <!-- Login Card -->
+    <div class="login-card">
+      <h1>Welcome, Judge</h1>
+      <p class="subtitle">Sign in to access the voting panel</p>
+
+      <form class="login-form" id="loginForm">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            placeholder="Enter your name"
+            required
+            autocomplete="name"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+          >
+        </div>
+
+        <a href="judges-vote.html" class="submit-btn" id="submitBtn">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+          </svg>
+          Start Voting
+        </a>
+      </form>
+
+      <a href="index.html" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Back to Home
+      </a>
+    </div>
+
+    <div class="footer">
+      ISF Live Voting System
+    </div>
+  </div>
+
+  <script>
+    // Optional: Add form validation and store judge name
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (name && password) {
+        // Store judge name for use in voting page
+        localStorage.setItem('judgeName', name);
+        window.location.href = 'judges-vote.html';
+      }
+    });
+
+    // Prevent default link behavior and use form submission
+    document.getElementById('submitBtn').addEventListener('click', function(e) {
+      const name = document.getElementById('name').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!name || !password) {
+        e.preventDefault();
+        // Highlight empty fields
+        if (!name) {
+          document.getElementById('name').focus();
+        } else if (!password) {
+          document.getElementById('password').focus();
+        }
+      } else {
+        // Store judge name for use in voting page
+        localStorage.setItem('judgeName', name);
+      }
+    });
+  </script>
+</body>
+</html>

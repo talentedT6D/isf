@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control Panel - ISF</title>
+  <link rel="icon" type="image/png" href="ISF logos_2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    :root {
+      --glass-dark: rgba(255, 255, 255, 0.08);
+      --glass-dark-strong: rgba(255, 255, 255, 0.12);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --glass-blur: 20px;
+      --text-light: #ffffff;
+      --text-medium: rgba(255, 255, 255, 0.7);
+      --text-muted: rgba(255, 255, 255, 0.5);
+      --accent-pink: #FF6B95;
+      --accent-coral: #FF8A80;
+      --accent-orange: #FF8C42;
+      --success: #10B981;
+      --danger: #EF4444;
+      --warning: #F59E0B;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+      color: var(--text-light);
+    }
+
+    .logo-watermark {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      width: 60px;
+      height: auto;
+      opacity: 0.8;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    /* Floating gradient blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .blob-1 {
+      width: 350px;
+      height: 350px;
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+      top: -80px;
+      right: -80px;
+      animation: floatBlob 20s ease-in-out infinite;
+    }
+
+    .blob-2 {
+      width: 300px;
+      height: 300px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      bottom: -60px;
+      left: -60px;
+      animation: floatBlob 25s ease-in-out infinite reverse;
+    }
+
+    @keyframes floatBlob {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Main Stage Area - Maximized Video */
+    .stage {
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .stage-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-shrink: 0;
+      padding-left: 80px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 20px rgba(255, 107, 149, 0.3);
+    }
+
+    .logo-icon svg {
+      width: 22px;
+      height: 22px;
+      color: white;
+    }
+
+    .logo-text {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+
+    .status-badges {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .connection-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      background: rgba(16, 185, 129, 0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #059669;
+    }
+
+    .connection-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .paused-badge {
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      background: rgba(245, 158, 11, 0.2);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #D97706;
+      letter-spacing: 0.05em;
+    }
+
+    .paused-badge.show {
+      display: flex;
+    }
+
+    /* Video + Controls Layout - Horizontal */
+    .video-controls-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      min-height: 0;
+      padding: 0.5rem 0;
+    }
+
+    .side-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    /* Video Carousel Container */
+    .carousel-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      min-height: 0;
+      perspective: 1000px;
+    }
+
+    .carousel-track {
+      position: relative;
+      aspect-ratio: 9/16;
+      height: calc(100vh - 120px);
+      max-width: 100%;
+    }
+
+    .video-card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: var(--glass-dark);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.15);
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+
+    .video-card.current {
+      z-index: 3;
+      transform: translateY(0) scale(1) rotateX(0);
+      opacity: 1;
+    }
+
+    .video-card.prev {
+      z-index: 2;
+      transform: translateY(-120%) scale(0.85) rotateX(15deg);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .video-card.next {
+      z-index: 2;
+      transform: translateY(120%) scale(0.85) rotateX(-15deg);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .video-card.hidden {
+      opacity: 0;
+      transform: translateY(200%) scale(0.7);
+      pointer-events: none;
+    }
+
+    /* Scroll animation states */
+    .video-card.slide-up {
+      animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .video-card.slide-down {
+      animation: slideDown 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .video-card.slide-in-from-bottom {
+      animation: slideInFromBottom 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .video-card.slide-in-from-top {
+      animation: slideInFromTop 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(0) scale(1) rotateX(0); opacity: 1; }
+      to { transform: translateY(-120%) scale(0.85) rotateX(15deg); opacity: 0.4; }
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(0) scale(1) rotateX(0); opacity: 1; }
+      to { transform: translateY(120%) scale(0.85) rotateX(-15deg); opacity: 0.4; }
+    }
+
+    @keyframes slideInFromBottom {
+      from { transform: translateY(120%) scale(0.85) rotateX(-15deg); opacity: 0.4; }
+      to { transform: translateY(0) scale(1) rotateX(0); opacity: 1; }
+    }
+
+    @keyframes slideInFromTop {
+      from { transform: translateY(-120%) scale(0.85) rotateX(15deg); opacity: 0.4; }
+      to { transform: translateY(0) scale(1) rotateX(0); opacity: 1; }
+    }
+
+    .video-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.5) 100%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .video-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.15) 0%, rgba(255, 140, 66, 0.15) 100%);
+    }
+
+    .video-player {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+      z-index: 1;
+    }
+
+    .video-avatar {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 30px rgba(255, 107, 149, 0.4);
+    }
+
+    .video-avatar svg {
+      width: 40px;
+      height: 40px;
+      color: white;
+    }
+
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .overlay-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .reel-badge {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .live-badge {
+      background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: white;
+      animation: livePulse 2s infinite;
+    }
+
+    .live-badge.paused {
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+      animation: none;
+    }
+
+    .reel-logo {
+      width: 40px;
+      height: auto;
+      opacity: 0.9;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+
+    @keyframes livePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+      50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    }
+
+    .overlay-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1.25rem;
+      text-align: center;
+    }
+
+    .contestant-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 0.4rem;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .contestant-category {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      padding: 0.3rem 0.8rem;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: white;
+    }
+
+    /* Side Control Buttons */
+    .side-btn {
+      width: 60px;
+      height: 60px;
+      border: none;
+      border-radius: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .side-btn svg {
+      width: 24px;
+      height: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .side-btn.secondary {
+      background: var(--glass-dark-strong);
+      backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      color: var(--text-light);
+    }
+
+    .side-btn.secondary:hover {
+      transform: translateY(-4px) rotateX(-10deg);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .side-btn.secondary:active {
+      transform: translateY(0) rotateX(0) scale(0.95);
+    }
+
+    .side-btn.primary {
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      color: white;
+      box-shadow: 0 8px 20px rgba(255, 107, 149, 0.35);
+    }
+
+    .side-btn.primary:hover {
+      transform: translateY(-4px) rotateX(-10deg) scale(1.05);
+      box-shadow: 0 18px 35px rgba(255, 107, 149, 0.45);
+    }
+
+    .side-btn.primary:active {
+      transform: translateY(0) rotateX(0) scale(0.95);
+    }
+
+    .side-btn.warning {
+      background: linear-gradient(135deg, var(--warning) 0%, #D97706 100%);
+      color: white;
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.35);
+    }
+
+    .side-btn.warning:hover {
+      transform: translateY(-4px) rotateX(-10deg) scale(1.05);
+      box-shadow: 0 18px 35px rgba(245, 158, 11, 0.45);
+    }
+
+    .side-btn.large {
+      width: 72px;
+      height: 72px;
+    }
+
+    .side-btn.large svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .side-btn .ripple {
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(0);
+      opacity: 1;
+    }
+
+    .side-btn.clicked .ripple {
+      animation: ripple 0.6s ease-out;
+    }
+
+    .side-btn-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-medium);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.4rem;
+    }
+
+    /* Keyboard hints below buttons */
+    .side-hint {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .key-badge {
+      padding: 0.25rem 0.5rem;
+      background: var(--glass-dark-strong);
+      border: 1px solid var(--glass-border);
+      border-radius: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: 600;
+      color: var(--text-medium);
+    }
+
+    .control-btn {
+      width: 56px;
+      height: 56px;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .control-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      background: inherit;
+      transform: translateZ(-8px);
+      filter: brightness(0.7);
+    }
+
+    .control-btn svg {
+      width: 20px;
+      height: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .control-btn.secondary {
+      background: var(--glass-dark-strong);
+      backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      color: var(--text-light);
+    }
+
+    .control-btn.secondary:hover {
+      transform: translateY(-4px) rotateX(-10deg);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .control-btn.secondary:active {
+      transform: translateY(0) rotateX(0) scale(0.95);
+    }
+
+    .control-btn.primary {
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      color: white;
+      box-shadow: 0 8px 20px rgba(255, 107, 149, 0.35);
+    }
+
+    .control-btn.primary:hover {
+      transform: translateY(-4px) rotateX(-10deg) scale(1.05);
+      box-shadow: 0 18px 35px rgba(255, 107, 149, 0.45);
+    }
+
+    .control-btn.primary:active {
+      transform: translateY(0) rotateX(0) scale(0.95);
+    }
+
+    .control-btn.warning {
+      background: linear-gradient(135deg, var(--warning) 0%, #D97706 100%);
+      color: white;
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.35);
+    }
+
+    .control-btn.warning:hover {
+      transform: translateY(-4px) rotateX(-10deg) scale(1.05);
+      box-shadow: 0 18px 35px rgba(245, 158, 11, 0.45);
+    }
+
+    .control-btn.large {
+      width: 64px;
+      height: 64px;
+    }
+
+    .control-btn.large svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    /* Button ripple effect */
+    .control-btn .ripple {
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(0);
+      opacity: 1;
+    }
+
+    .control-btn.clicked .ripple {
+      animation: ripple 0.6s ease-out;
+    }
+
+    @keyframes ripple {
+      to { transform: scale(2); opacity: 0; }
+    }
+
+    .keyboard-hint {
+      display: flex;
+      justify-content: center;
+      gap: 1.25rem;
+      margin-top: 0.75rem;
+    }
+
+    .key-hint {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.7rem;
+      color: var(--text-medium);
+      font-weight: 500;
+    }
+
+    .key {
+      padding: 0.25rem 0.5rem;
+      background: var(--glass-dark-strong);
+      border: 1px solid var(--glass-border);
+      border-radius: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: 600;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--glass-dark);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-left: 1px solid var(--glass-border);
+      padding: 1.25rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .sidebar-section {
+      animation: fadeUp 0.6s ease-out both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-title {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .section-title svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--glass-border) 0%, transparent 100%);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+    }
+
+    .stat-card {
+      background: var(--glass-dark-strong);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 0.85rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      border-color: var(--accent-pink);
+      transform: translateY(-2px);
+    }
+
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* QR Section */
+    .qr-card {
+      background: var(--glass-dark-strong);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 1rem;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .qr-placeholder {
+      width: 100px;
+      height: 100px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      margin: 0 auto 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: #333;
+      font-weight: 500;
+      border: 2px dashed #ddd;
+    }
+
+    .qr-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-light);
+      margin-bottom: 0.25rem;
+    }
+
+    .qr-url {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55rem;
+      color: var(--text-muted);
+      word-break: break-all;
+    }
+
+    /* Reel Queue */
+    .reel-queue {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .reel-queue::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .reel-queue::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.12);
+      border-radius: 2px;
+    }
+
+    .reel-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem;
+      background: var(--glass-dark);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .reel-item:hover {
+      background: var(--glass-dark-strong);
+      border-color: var(--accent-pink);
+    }
+
+    .reel-item.active {
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.15) 0%, rgba(255, 140, 66, 0.1) 100%);
+      border-color: var(--accent-pink);
+    }
+
+    .reel-item.active .reel-number {
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      color: white;
+    }
+
+    .reel-number {
+      width: 28px;
+      height: 28px;
+      background: var(--glass-dark-strong);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .reel-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .reel-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-light);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .reel-category {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    /* Focus states */
+    .control-btn:focus-visible,
+    .side-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255, 107, 149, 0.5);
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+      }
+      .sidebar {
+        border-left: none;
+        border-top: 1px solid var(--glass-border);
+        max-height: 40vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <img src="ISF logos_2.png" alt="ISF Logo" class="logo-watermark">
+
+  <!-- Floating blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div class="layout">
+    <main class="stage">
+      <header class="stage-header">
+        <div class="status-badges">
+          <div class="paused-badge" id="pausedBadge">PAUSED</div>
+          <div class="connection-badge">
+            <span class="connection-dot"></span>
+            <span id="connectionText">Connected</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="video-controls-wrapper">
+        <!-- Left Side Controls: Pause + Replay -->
+        <div class="side-controls">
+          <div class="side-hint">
+            <button class="side-btn primary large" id="pauseBtn" aria-label="Pause for voting">
+              <span class="ripple"></span>
+              <svg viewBox="0 0 24 24" fill="currentColor" id="pauseIcon">
+                <rect x="6" y="4" width="4" height="16"/>
+                <rect x="14" y="4" width="4" height="16"/>
+              </svg>
+              <svg viewBox="0 0 24 24" fill="currentColor" id="playIcon" style="display:none;">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+            </button>
+            <span class="side-btn-label">Pause</span>
+            <span class="key-badge">Space</span>
+          </div>
+          <div class="side-hint">
+            <button class="side-btn secondary" id="replayBtn" aria-label="Replay">
+              <span class="ripple"></span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+              </svg>
+            </button>
+            <span class="side-btn-label">Replay</span>
+            <span class="key-badge">R</span>
+          </div>
+        </div>
+
+        <!-- Video Carousel -->
+        <div class="carousel-container">
+          <div class="carousel-track" id="carouselTrack">
+            <div class="video-card current" id="currentCard">
+              <div class="video-content">
+                <video class="video-player" id="videoPlayer" autoplay loop playsinline muted></video>
+                <div class="video-avatar" id="thumbnail">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="video-overlay">
+                <div class="overlay-top">
+                  <div class="reel-badge" id="reelNumber">#1 of 10</div>
+                  <img src="ISF logos_2.png" alt="ISF" class="reel-logo" id="liveBadge">
+                </div>
+                <div class="overlay-bottom">
+                  <div class="contestant-name" id="contestantName">Arjun Mehta</div>
+                  <div class="contestant-category" id="category">Dance</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side Controls: Prev + Next -->
+        <div class="side-controls">
+          <div class="side-hint">
+            <button class="side-btn secondary" id="prevBtn" aria-label="Previous reel">
+              <span class="ripple"></span>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+              </svg>
+            </button>
+            <span class="side-btn-label">Prev</span>
+            <span class="key-badge">←</span>
+          </div>
+          <div class="side-hint">
+            <button class="side-btn primary" id="nextBtn" aria-label="Next reel">
+              <span class="ripple"></span>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+              </svg>
+            </button>
+            <span class="side-btn-label">Next</span>
+            <span class="key-badge">→</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          Live Statistics
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="audienceVotes">0</div>
+            <div class="stat-label">Audience</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="judgeVotes">0</div>
+            <div class="stat-label">Judges</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="avgScore">-</div>
+            <div class="stat-label">Avg Score</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="connectedDevices">0</div>
+            <div class="stat-label">Devices</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <rect x="7" y="7" width="3" height="9"/>
+            <rect x="14" y="7" width="3" height="5"/>
+          </svg>
+          Audience Access
+        </div>
+        <div class="qr-card">
+          <div class="qr-placeholder">QR Code</div>
+          <div class="qr-label">Scan to Vote</div>
+          <div class="qr-url" id="voteUrl"></div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+            <line x1="7" y1="2" x2="7" y2="22"/>
+            <line x1="17" y1="2" x2="17" y2="22"/>
+          </svg>
+          Reel Queue
+        </div>
+        <div class="reel-queue" id="reelList"></div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="sync.js"></script>
+  <script>
+    (function() {
+      var aifilms = window.AIFilms;
+      var currentIndex = 0;
+      var isPaused = false;
+      var isAnimating = false;
+
+      function init() {
+        var state = aifilms.sync.getState();
+        currentIndex = state.reelIndex || 0;
+
+        renderReelList();
+        updateDisplay(false);
+
+        var baseUrl = window.location.href.replace('control.html', 'vote.html');
+        document.getElementById('voteUrl').textContent = baseUrl;
+
+        if (aifilms.sync.onDeviceCountChange) {
+          aifilms.sync.onDeviceCountChange(function(count) {
+            document.getElementById('connectedDevices').textContent = count;
+          });
+        }
+
+        // Handle state sync requests from reconnecting clients
+        aifilms.sync.on('state-request', function(payload) {
+          console.log('Received state request from:', payload.requesterId);
+          var reel = aifilms.MOCK_REELS[currentIndex];
+          aifilms.sync.broadcast('state-sync', {
+            reelIndex: currentIndex,
+            reelId: reel.id,
+            reelNumber: reel.number,
+            contestant: reel.contestant,
+            category: reel.category,
+            videoUrl: reel.videoUrl,
+            status: isPaused ? 'paused' : 'playing',
+            syncTimestamp: Date.now()
+          });
+        });
+
+        setInterval(updateStats, 1000);
+
+        // Button events with ripple effect
+        setupButton('prevBtn', prevReel);
+        setupButton('nextBtn', nextReel);
+        setupButton('replayBtn', replay);
+        setupButton('pauseBtn', togglePause);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            triggerClick('nextBtn');
+            nextReel();
+          } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            triggerClick('prevBtn');
+            prevReel();
+          } else if (e.key === ' ') {
+            e.preventDefault();
+            triggerClick('pauseBtn');
+            togglePause();
+          } else if (e.key === 'r' || e.key === 'R') {
+            triggerClick('replayBtn');
+            replay();
+          }
+        });
+      }
+
+      function setupButton(id, handler) {
+        var btn = document.getElementById(id);
+        if (!btn) {
+          console.error('Button not found:', id);
+          return;
+        }
+        console.log('Setting up button:', id);
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          console.log('Button clicked:', id);
+          addRipple(btn);
+          handler();
+        });
+      }
+
+      function addRipple(btn) {
+        btn.classList.remove('clicked');
+        void btn.offsetWidth; // Trigger reflow
+        btn.classList.add('clicked');
+        setTimeout(function() { btn.classList.remove('clicked'); }, 600);
+      }
+
+      function updatePauseButtonClass(paused) {
+        var pauseBtn = document.getElementById('pauseBtn');
+        if (paused) {
+          pauseBtn.classList.remove('primary');
+          pauseBtn.classList.add('warning');
+        } else {
+          pauseBtn.classList.remove('warning');
+          pauseBtn.classList.add('primary');
+        }
+      }
+
+      function triggerClick(id) {
+        addRipple(document.getElementById(id));
+      }
+
+      function renderReelList() {
+        var list = document.getElementById('reelList');
+        list.innerHTML = aifilms.MOCK_REELS.map(function(reel, index) {
+          return '<div class="reel-item ' + (index === currentIndex ? 'active' : '') + '" data-index="' + index + '">' +
+            '<div class="reel-number">' + reel.number + '</div>' +
+            '<div class="reel-info">' +
+              '<div class="reel-name">' + reel.contestant + '</div>' +
+              '<div class="reel-category">' + reel.category + '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+
+        list.querySelectorAll('.reel-item').forEach(function(item) {
+          item.addEventListener('click', function() {
+            jumpToReel(parseInt(item.dataset.index));
+          });
+        });
+      }
+
+      function updateDisplay(animate, direction) {
+        var reel = aifilms.MOCK_REELS[currentIndex];
+        var card = document.getElementById('currentCard');
+
+        if (animate && !isAnimating) {
+          isAnimating = true;
+
+          // Animate out
+          card.classList.add(direction === 'next' ? 'slide-up' : 'slide-down');
+
+          setTimeout(function() {
+            // Update content
+            setReelContent(reel);
+
+            // Reset and animate in
+            card.classList.remove('slide-up', 'slide-down');
+            card.classList.add(direction === 'next' ? 'slide-in-from-bottom' : 'slide-in-from-top');
+
+            setTimeout(function() {
+              card.classList.remove('slide-in-from-bottom', 'slide-in-from-top');
+              isAnimating = false;
+            }, 600);
+          }, 300);
+        } else {
+          setReelContent(reel);
+        }
+
+        renderReelList();
+        updateStats();
+
+        aifilms.sync.broadcast('reel-change', {
+          reelIndex: currentIndex,
+          reelId: reel.id,
+          reelNumber: reel.number,
+          contestant: reel.contestant,
+          category: reel.category,
+          videoUrl: reel.videoUrl,
+          status: isPaused ? 'paused' : 'playing',
+          syncTimestamp: Date.now()
+        });
+      }
+
+      function setReelContent(reel) {
+        document.getElementById('reelNumber').textContent = '#' + reel.number + ' of ' + aifilms.MOCK_REELS.length;
+        document.getElementById('contestantName').textContent = reel.contestant;
+        document.getElementById('category').textContent = reel.category;
+
+        var videoPlayer = document.getElementById('videoPlayer');
+        var thumbnail = document.getElementById('thumbnail');
+
+        if (reel.videoUrl) {
+          videoPlayer.src = reel.videoUrl;
+          videoPlayer.style.display = 'block';
+          thumbnail.style.display = 'none';
+          if (!isPaused) videoPlayer.play().catch(function() {});
+        } else {
+          videoPlayer.style.display = 'none';
+          thumbnail.style.display = 'flex';
+        }
+      }
+
+      function updateStats() {
+        var reel = aifilms.MOCK_REELS[currentIndex];
+        var stats = aifilms.voteStore.getReelStats(reel.id);
+
+        document.getElementById('audienceVotes').textContent = stats.audienceCount;
+        document.getElementById('judgeVotes').textContent = stats.judgeCount;
+        document.getElementById('avgScore').textContent =
+          stats.finalScore > 0 ? stats.finalScore.toFixed(1) : '-';
+      }
+
+      function nextReel() {
+        if (isAnimating) return;
+        if (currentIndex < aifilms.MOCK_REELS.length - 1) {
+          currentIndex++;
+          updateDisplay(true, 'next');
+        }
+      }
+
+      function prevReel() {
+        if (isAnimating) return;
+        if (currentIndex > 0) {
+          currentIndex--;
+          updateDisplay(true, 'prev');
+        }
+      }
+
+      function replay() {
+        var videoPlayer = document.getElementById('videoPlayer');
+        videoPlayer.currentTime = 0;
+        if (!isPaused) videoPlayer.play().catch(function() {});
+
+        // Add a spin animation to the card
+        var card = document.getElementById('currentCard');
+        card.style.animation = 'none';
+        card.offsetHeight; // Trigger reflow
+        card.style.animation = 'replaySpin 0.5s ease-out';
+        setTimeout(function() { card.style.animation = ''; }, 500);
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        var videoPlayer = document.getElementById('videoPlayer');
+        var pauseIcon = document.getElementById('pauseIcon');
+        var playIcon = document.getElementById('playIcon');
+        var liveBadge = document.getElementById('liveBadge');
+        var pausedBadge = document.getElementById('pausedBadge');
+
+        console.log('Toggle pause:', isPaused);
+
+        if (isPaused) {
+          videoPlayer.pause();
+          pauseIcon.style.display = 'none';
+          playIcon.style.display = 'block';
+          liveBadge.style.opacity = '0.5';
+          pausedBadge.classList.add('show');
+        } else {
+          videoPlayer.play().catch(function(err) { console.log('Play error:', err); });
+          pauseIcon.style.display = 'block';
+          playIcon.style.display = 'none';
+          liveBadge.style.opacity = '0.9';
+          pausedBadge.classList.remove('show');
+        }
+
+        updatePauseButtonClass(isPaused);
+
+        // Broadcast pause state
+        var reel = aifilms.MOCK_REELS[currentIndex];
+        aifilms.sync.broadcast('reel-change', {
+          reelIndex: currentIndex,
+          reelId: reel.id,
+          status: isPaused ? 'paused' : 'playing',
+          syncTimestamp: Date.now()
+        });
+      }
+
+      function jumpToReel(index) {
+        if (isAnimating || index === currentIndex) return;
+        var direction = index > currentIndex ? 'next' : 'prev';
+        currentIndex = index;
+        updateDisplay(true, direction);
+      }
+
+      // Add replay spin keyframe
+      var style = document.createElement('style');
+      style.textContent = '@keyframes replaySpin { 0% { transform: rotateY(0); } 50% { transform: rotateY(180deg) scale(0.9); } 100% { transform: rotateY(360deg); } }';
+      document.head.appendChild(style);
+
+      var initialized = false;
+
+      function safeInit() {
+        if (initialized) return;
+        if (!window.AIFilms) return;
+
+        aifilms = window.AIFilms;
+        initialized = true;
+        console.log('Control panel initialized');
+        init();
+      }
+
+      // Try to init when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', safeInit);
+      } else {
+        safeInit();
+      }
+
+      // Also try when AIFilms is ready (for Supabase async loading)
+      window.addEventListener('aifilms-ready', safeInit);
+    })();
+  </script>
+</body>
+</html>

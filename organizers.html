@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organizers Portal - ISF</title>
+  <link rel="icon" type="image/png" href="ISF logos_2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --glass-dark: rgba(255, 255, 255, 0.08);
+      --glass-dark-strong: rgba(255, 255, 255, 0.12);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --glass-blur: 20px;
+      --text-light: #ffffff;
+      --text-medium: rgba(255, 255, 255, 0.7);
+      --text-muted: rgba(255, 255, 255, 0.5);
+      --accent-pink: #FF6B95;
+      --accent-orange: #FF8C42;
+      --accent-purple: #8B5CF6;
+      --accent-indigo: #6366F1;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+      min-height: 100vh;
+      color: var(--text-light);
+    }
+
+    /* Logo Watermark - Top LEFT */
+    .logo-watermark {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      width: 60px;
+      height: auto;
+      opacity: 0.8;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    /* Floating blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .blob-1 {
+      width: 400px;
+      height: 400px;
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+      top: -100px;
+      right: -100px;
+      animation: blobFloat 20s ease-in-out infinite;
+    }
+
+    .blob-2 {
+      width: 350px;
+      height: 350px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      bottom: 10%;
+      left: -80px;
+      animation: blobFloat 25s ease-in-out infinite reverse;
+    }
+
+    .blob-3 {
+      width: 300px;
+      height: 300px;
+      background: linear-gradient(135deg, #FF6B95 0%, #ec4899 100%);
+      top: 40%;
+      right: 20%;
+      animation: blobFloat 18s ease-in-out infinite;
+    }
+
+    @keyframes blobFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -40px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Main Content */
+    .main-content {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 5rem 1.5rem 4rem 5rem; /* top right bottom left - extra left padding to clear fixed logo */
+    }
+
+    /* Organizers Badge */
+    .organizers-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 1.25rem;
+      background: rgba(139, 92, 246, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #A78BFA;
+      margin-bottom: 2rem;
+      animation: fadeDown 0.6s ease-out;
+    }
+
+    .badge-icon {
+      width: 8px;
+      height: 8px;
+      background: #8B5CF6;
+      border-radius: 50%;
+      animation: badgePulse 2s infinite;
+    }
+
+    @keyframes badgePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.5); }
+      50% { box-shadow: 0 0 0 6px rgba(139, 92, 246, 0); }
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Page Title */
+    .page-title {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: fadeUp 0.6s ease-out 0.1s both;
+    }
+
+    .page-title h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text-light);
+      margin-bottom: 0.75rem;
+    }
+
+    .page-title p {
+      font-size: 1.1rem;
+      color: var(--text-medium);
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 700px;
+      animation: fadeUp 0.6s ease-out 0.2s both;
+    }
+
+    /* Portal Card */
+    .portal-card {
+      background: var(--glass-dark);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .portal-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -30%;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      filter: blur(50px);
+      pointer-events: none;
+      opacity: 0.3;
+      transition: opacity 0.3s ease;
+    }
+
+    .portal-card:nth-child(1)::before {
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.5) 0%, rgba(255, 140, 66, 0.3) 100%);
+    }
+
+    .portal-card:nth-child(2)::before {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.5) 0%, rgba(139, 92, 246, 0.3) 100%);
+    }
+
+    .portal-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(255, 107, 149, 0.5);
+      background: var(--glass-dark-strong);
+    }
+
+    .portal-card:hover::before {
+      opacity: 0.5;
+    }
+
+    .portal-card:nth-child(1):hover {
+      border-color: rgba(255, 107, 149, 0.5);
+    }
+
+    .portal-card:nth-child(2):hover {
+      border-color: rgba(139, 92, 246, 0.5);
+    }
+
+    /* Card Icon */
+    .card-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .portal-card:nth-child(1) .card-icon {
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      box-shadow: 0 12px 30px rgba(255, 107, 149, 0.4);
+    }
+
+    .portal-card:nth-child(2) .card-icon {
+      background: linear-gradient(135deg, var(--accent-indigo) 0%, var(--accent-purple) 100%);
+      box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+    }
+
+    .card-icon svg {
+      width: 36px;
+      height: 36px;
+      color: white;
+    }
+
+    /* Card Content */
+    .card-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-light);
+      margin-bottom: 0.6rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-description {
+      font-size: 0.9rem;
+      color: var(--text-medium);
+      line-height: 1.5;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Card Arrow */
+    .card-arrow {
+      margin-top: 1.5rem;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--glass-dark-strong);
+      border: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-arrow svg {
+      width: 18px;
+      height: 18px;
+      color: var(--text-medium);
+      transition: all 0.3s ease;
+    }
+
+    .portal-card:hover .card-arrow {
+      transform: translateX(4px);
+    }
+
+    .portal-card:nth-child(1):hover .card-arrow {
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      border-color: transparent;
+    }
+
+    .portal-card:nth-child(2):hover .card-arrow {
+      background: linear-gradient(135deg, var(--accent-indigo) 0%, var(--accent-purple) 100%);
+      border-color: transparent;
+    }
+
+    .portal-card:hover .card-arrow svg {
+      color: white;
+    }
+
+    /* Back Link */
+    .back-link {
+      margin-top: 3rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: var(--glass-dark);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      color: var(--text-medium);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      animation: fadeUp 0.6s ease-out 0.3s both;
+    }
+
+    .back-link svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .back-link:hover {
+      background: var(--glass-dark-strong);
+      color: var(--text-light);
+      transform: translateY(-2px);
+      border-color: var(--accent-pink);
+    }
+
+    /* Focus states for accessibility */
+    .portal-card:focus-visible,
+    .back-link:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255, 107, 149, 0.5);
+    }
+
+    /* Reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 5rem 1rem 3rem 4.5rem; /* extra left padding to clear fixed logo (50px + ~20px margin) */
+      }
+
+      .page-title h1 {
+        font-size: 2rem;
+      }
+
+      .page-title p {
+        font-size: 1rem;
+      }
+
+      .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+      }
+
+      .portal-card {
+        padding: 2rem 1.5rem;
+      }
+
+      .card-icon {
+        width: 64px;
+        height: 64px;
+      }
+
+      .card-icon svg {
+        width: 32px;
+        height: 32px;
+      }
+
+      .card-title {
+        font-size: 1.25rem;
+      }
+
+      .logo-watermark {
+        width: 50px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .page-title h1 {
+        font-size: 1.75rem;
+      }
+
+      .organizers-badge {
+        font-size: 0.65rem;
+        padding: 0.5rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Logo Watermark - Top LEFT -->
+  <img src="ISF logos_2.png" alt="ISF Logo" class="logo-watermark">
+
+  <!-- Floating blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <main class="main-content">
+    <div class="organizers-badge">
+      <span class="badge-icon"></span>
+      Organizers Portal
+    </div>
+
+    <div class="page-title">
+      <h1>Event Management</h1>
+      <p>Access results and control the live show flow</p>
+    </div>
+
+    <div class="cards-grid">
+      <!-- View Results Card -->
+      <a href="results.html" class="portal-card">
+        <div class="card-icon">
+          <!-- Bar Chart Icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </div>
+        <h3 class="card-title">View Results</h3>
+        <p class="card-description">Monitor live voting results, leaderboard standings, and real-time statistics.</p>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </div>
+      </a>
+
+      <!-- Control Panel Card -->
+      <a href="control.html" class="portal-card">
+        <div class="card-icon">
+          <!-- Settings/Gear Icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </div>
+        <h3 class="card-title">Control Panel</h3>
+        <p class="card-description">Manage show flow, navigate between reels, and control the live presentation.</p>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </div>
+      </a>
+    </div>
+
+    <a href="index.html" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"/>
+        <polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Back to Home
+    </a>
+  </main>
+</body>
+</html>

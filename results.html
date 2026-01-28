@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Results - ISF</title>
+  <link rel="icon" type="image/png" href="ISF logos_2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --glass-dark: rgba(255, 255, 255, 0.08);
+      --glass-dark-strong: rgba(255, 255, 255, 0.12);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --glass-blur: 20px;
+      --text-light: #ffffff;
+      --text-medium: rgba(255, 255, 255, 0.7);
+      --text-muted: rgba(255, 255, 255, 0.5);
+      --accent-pink: #FF6B95;
+      --accent-coral: #FF8A80;
+      --accent-orange: #FF8C42;
+      --success: #10B981;
+      --gold: #FFB347;
+      --silver: #A8B4C0;
+      --bronze: #D4A574;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+      color: var(--text-light);
+      min-height: 100vh;
+      position: relative;
+    }
+
+    .logo-watermark {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      width: 60px;
+      height: auto;
+      opacity: 0.8;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    /* Floating gradient blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .blob-1 {
+      width: 450px;
+      height: 450px;
+      background: linear-gradient(135deg, #FF6B95 0%, #9B59B6 100%);
+      top: -120px;
+      right: -120px;
+      animation: floatBlob 20s ease-in-out infinite;
+    }
+
+    .blob-2 {
+      width: 380px;
+      height: 380px;
+      background: linear-gradient(135deg, #8E44AD 0%, #FF6B95 100%);
+      bottom: -80px;
+      left: -80px;
+      animation: floatBlob 25s ease-in-out infinite reverse;
+    }
+
+    .blob-3 {
+      width: 280px;
+      height: 280px;
+      background: linear-gradient(135deg, #9B59B6 0%, #E91E63 100%);
+      top: 40%;
+      left: 20%;
+      animation: floatBlob 18s ease-in-out infinite;
+    }
+
+    @keyframes floatBlob {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      animation: fadeDown 0.6s ease-out;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding-left: 80px;
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(239, 68, 68, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #DC2626;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: #EF4444;
+      border-radius: 50%;
+      animation: livePulse 2s infinite;
+    }
+
+    @keyframes livePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+      50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    }
+
+    /* Stats Overview */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.6s ease-out 0.1s both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stat-card {
+      background: var(--glass-dark);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-pink), var(--accent-orange));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .stat-card:hover {
+      border-color: var(--accent-pink);
+      transform: translateY(-3px);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .stat-card:hover::before {
+      opacity: 1;
+    }
+
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* Leaderboard */
+    .leaderboard {
+      background: var(--glass-dark);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      overflow: hidden;
+      animation: fadeUp 0.6s ease-out 0.2s both;
+    }
+
+    .leaderboard-header {
+      display: grid;
+      grid-template-columns: 60px 1fr 100px 100px 120px;
+      padding: 1rem 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid var(--glass-border);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .leaderboard-header span:last-child {
+      text-align: right;
+    }
+
+    .leaderboard-body {
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .leaderboard-body::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .leaderboard-body::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 2px;
+    }
+
+    .leaderboard-row {
+      display: grid;
+      grid-template-columns: 60px 1fr 100px 100px 120px;
+      padding: 1rem 1.5rem;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .leaderboard-row:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .leaderboard-row.top-3 {
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.1) 0%, rgba(255, 140, 66, 0.05) 100%);
+    }
+
+    .leaderboard-row.top-3:hover {
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.15) 0%, rgba(255, 140, 66, 0.08) 100%);
+    }
+
+    .rank {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+
+    .rank.gold {
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(255, 179, 71, 0.5);
+    }
+
+    .rank.silver { color: var(--silver); }
+    .rank.bronze { color: var(--bronze); }
+
+    .contestant-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .contestant-avatar {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(255, 107, 149, 0.25);
+    }
+
+    .contestant-avatar svg {
+      width: 24px;
+      height: 24px;
+      color: white;
+    }
+
+    .contestant-details {
+      min-width: 0;
+    }
+
+    .contestant-name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-light);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .contestant-category {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .vote-stat {
+      text-align: center;
+    }
+
+    .vote-avg {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-light);
+    }
+
+    .vote-count {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.1rem;
+      font-weight: 500;
+    }
+
+    .final-score {
+      text-align: right;
+    }
+
+    .score-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .score-value.high {
+      background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .score-value.medium {
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .score-value.low {
+      color: var(--text-muted);
+    }
+
+    /* Empty State */
+    .empty-state {
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+
+    .empty-state .icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1rem;
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.4;
+    }
+
+    .empty-state .icon svg {
+      width: 40px;
+      height: 40px;
+      color: white;
+    }
+
+    .empty-state h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--text-light);
+    }
+
+    .empty-state p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Refresh indicator */
+    .refresh-note {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Respect reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 1rem; }
+
+      .header { flex-direction: column; gap: 1rem; text-align: center; }
+      .header-left { flex-direction: column; padding-left: 0; }
+
+      .leaderboard-header,
+      .leaderboard-row {
+        grid-template-columns: 40px 1fr 80px;
+      }
+
+      .leaderboard-header > *:nth-child(3),
+      .leaderboard-header > *:nth-child(4),
+      .leaderboard-row > *:nth-child(3),
+      .leaderboard-row > *:nth-child(4) {
+        display: none;
+      }
+
+      .contestant-avatar { width: 40px; height: 40px; }
+      .contestant-avatar svg { width: 20px; height: 20px; }
+      .contestant-name { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <img src="ISF logos_2.png" alt="ISF Logo" class="logo-watermark">
+
+  <!-- Floating blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <h1 class="page-title">Live Results</h1>
+      </div>
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        <span>Live</span>
+      </div>
+    </header>
+
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-value" id="totalVotes">0</div>
+        <div class="stat-label">Total Votes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="judgeVotes">0</div>
+        <div class="stat-label">Judge Votes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="audienceVotes">0</div>
+        <div class="stat-label">Audience Votes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="reelsRated">0</div>
+        <div class="stat-label">Reels Rated</div>
+      </div>
+    </div>
+
+    <div class="leaderboard">
+      <div class="leaderboard-header">
+        <span>Rank</span>
+        <span>Contestant</span>
+        <span style="text-align: center;">Judges</span>
+        <span style="text-align: center;">Audience</span>
+        <span>Final Score</span>
+      </div>
+      <div class="leaderboard-body" id="leaderboardBody">
+        <div class="empty-state">
+          <div class="icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+          </div>
+          <h3>No Votes Yet</h3>
+          <p>Votes will appear here as they come in</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="refresh-note">Auto-refreshes every 2 seconds</div>
+  </div>
+
+  <script src="sync.js"></script>
+  <script>
+    (function() {
+      var aifilms = window.AIFilms;
+
+      function init() {
+        updateLeaderboard();
+        setInterval(updateLeaderboard, 2000);
+
+        aifilms.sync.on('vote', function() {
+          updateLeaderboard();
+        });
+      }
+
+      function updateLeaderboard() {
+        var allStats = aifilms.voteStore.getAllStats();
+
+        var totalVotes = 0;
+        var judgeVotes = 0;
+        var audienceVotes = 0;
+        var reelsRated = 0;
+
+        allStats.forEach(function(reel) {
+          totalVotes += reel.stats.totalVotes;
+          judgeVotes += reel.stats.judgeCount;
+          audienceVotes += reel.stats.audienceCount;
+          if (reel.stats.totalVotes > 0) reelsRated++;
+        });
+
+        document.getElementById('totalVotes').textContent = totalVotes;
+        document.getElementById('judgeVotes').textContent = judgeVotes;
+        document.getElementById('audienceVotes').textContent = audienceVotes;
+        document.getElementById('reelsRated').textContent = reelsRated;
+
+        var body = document.getElementById('leaderboardBody');
+
+        if (totalVotes === 0) {
+          body.innerHTML = '<div class="empty-state"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><h3>No Votes Yet</h3><p>Votes will appear here as they come in</p></div>';
+          return;
+        }
+
+        var ratedReels = allStats.filter(function(r) { return r.stats.totalVotes > 0; });
+
+        body.innerHTML = ratedReels.map(function(reel, index) {
+          var rank = index + 1;
+          var rankClass = '';
+          if (rank === 1) rankClass = 'gold';
+          else if (rank === 2) rankClass = 'silver';
+          else if (rank === 3) rankClass = 'bronze';
+
+          var scoreClass = 'low';
+          if (reel.stats.finalScore >= 8) scoreClass = 'high';
+          else if (reel.stats.finalScore >= 5) scoreClass = 'medium';
+
+          return '<div class="leaderboard-row ' + (rank <= 3 ? 'top-3' : '') + '">' +
+            '<div class="rank ' + rankClass + '">' + rank + '</div>' +
+            '<div class="contestant-info">' +
+              '<div class="contestant-avatar">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                  '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>' +
+                  '<circle cx="12" cy="7" r="4"/>' +
+                '</svg>' +
+              '</div>' +
+              '<div class="contestant-details">' +
+                '<div class="contestant-name">' + reel.contestant + '</div>' +
+                '<div class="contestant-category">' + reel.category + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="vote-stat">' +
+              '<div class="vote-avg">' + (reel.stats.judgeAvg > 0 ? reel.stats.judgeAvg.toFixed(1) : '-') + '</div>' +
+              '<div class="vote-count">(' + reel.stats.judgeCount + ')</div>' +
+            '</div>' +
+            '<div class="vote-stat">' +
+              '<div class="vote-avg">' + (reel.stats.audienceAvg > 0 ? reel.stats.audienceAvg.toFixed(1) : '-') + '</div>' +
+              '<div class="vote-count">(' + reel.stats.audienceCount + ')</div>' +
+            '</div>' +
+            '<div class="final-score">' +
+              '<div class="score-value ' + scoreClass + '">' + reel.stats.finalScore.toFixed(1) + '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+      }
+
+      if (aifilms && aifilms.ready) {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        window.addEventListener('aifilms-ready', init);
+        document.addEventListener('DOMContentLoaded', function() {
+          if (window.AIFilms) {
+            aifilms = window.AIFilms;
+            init();
+          }
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
