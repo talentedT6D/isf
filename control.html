@@ -954,6 +954,23 @@
             <span class="side-btn-label">Replay</span>
             <span class="key-badge">R</span>
           </div>
+          <div class="side-hint">
+            <button class="side-btn secondary" id="muteBtn" aria-label="Mute">
+              <span class="ripple"></span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="volumeOnIcon">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="volumeOffIcon" style="display:none;">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <line x1="23" y1="9" x2="17" y2="15"/>
+                <line x1="17" y1="9" x2="23" y2="15"/>
+              </svg>
+            </button>
+            <span class="side-btn-label" id="muteBtnLabel">Mute</span>
+            <span class="key-badge">M</span>
+          </div>
         </div>
 
         <!-- Video Carousel -->
@@ -961,7 +978,7 @@
           <div class="carousel-track" id="carouselTrack">
             <div class="video-card current" id="currentCard">
               <div class="video-content">
-                <video class="video-player" id="videoPlayer" autoplay loop playsinline muted></video>
+                <video class="video-player" id="videoPlayer" autoplay loop playsinline></video>
                 <div class="video-avatar" id="thumbnail">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -1114,6 +1131,7 @@
         setupButton('nextBtn', nextReel);
         setupButton('replayBtn', replay);
         setupButton('pauseBtn', togglePause);
+        setupButton('muteBtn', toggleMute);
 
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
@@ -1132,6 +1150,9 @@
           } else if (e.key === 'r' || e.key === 'R') {
             triggerClick('replayBtn');
             replay();
+          } else if (e.key === 'm' || e.key === 'M') {
+            triggerClick('muteBtn');
+            toggleMute();
           }
         });
       }
@@ -1290,6 +1311,25 @@
         card.offsetHeight; // Trigger reflow
         card.style.animation = 'replaySpin 0.5s ease-out';
         setTimeout(function() { card.style.animation = ''; }, 500);
+      }
+
+      function toggleMute() {
+        var videoPlayer = document.getElementById('videoPlayer');
+        var volumeOnIcon = document.getElementById('volumeOnIcon');
+        var volumeOffIcon = document.getElementById('volumeOffIcon');
+        var muteBtnLabel = document.getElementById('muteBtnLabel');
+
+        videoPlayer.muted = !videoPlayer.muted;
+
+        if (videoPlayer.muted) {
+          volumeOnIcon.style.display = 'none';
+          volumeOffIcon.style.display = 'block';
+          muteBtnLabel.textContent = 'Unmute';
+        } else {
+          volumeOnIcon.style.display = 'block';
+          volumeOffIcon.style.display = 'none';
+          muteBtnLabel.textContent = 'Mute';
+        }
       }
 
       function togglePause() {
