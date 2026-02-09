@@ -906,10 +906,10 @@
         var judgeName = localStorage.getItem('judgeName') || 'Judge';
         console.log('Auto-saving 0 for missed reel:', missedReel.id, missedReel.contestant);
 
-        aifilms.voteStore.saveVote(missedReel.id, 0, 'judge', judgeName, missedReel.category);
+        aifilms.voteStore.saveVote(missedReel.id, null, 'judge', judgeName, missedReel.category);
         aifilms.sync.broadcast('vote', {
           reelId: missedReel.id,
-          score: 0,
+          score: null,
           voterType: 'judge'
         });
       }

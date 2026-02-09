@@ -1246,10 +1246,10 @@
           voterName = user.user_metadata?.full_name || user.email || 'Audience';
         }
 
-        aifilms.voteStore.saveVote(missedReel.id, 0, 'audience', voterName, missedReel.category);
+        aifilms.voteStore.saveVote(missedReel.id, null, 'audience', voterName, missedReel.category);
         aifilms.sync.broadcast('vote', {
           reelId: missedReel.id,
-          score: 0,
+          score: null,
           voterType: 'audience'
         });
       }

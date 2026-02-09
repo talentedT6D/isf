@@ -1134,7 +1134,7 @@
           var reelNum = reel ? reel.number : '--';
           var contestant = reel ? reel.contestant : '--';
           var category = v.category || (reel ? reel.category : '--');
-          var score = v.score != null ? v.score : '--';
+          var score = v.score != null ? v.score : 'Missed';
 
           var typeBadgeClass = type === 'judge' ? 'judge' : 'audience';
           var scoreClass = '';
@@ -1142,6 +1142,8 @@
             if (score >= 70) scoreClass = 'score-high';
             else if (score >= 40) scoreClass = 'score-mid';
             else scoreClass = 'score-low';
+          } else if (score === 'Missed') {
+            scoreClass = 'score-low';
           }
 
           html += '<tr>';
@@ -1197,9 +1199,10 @@
         var html = '';
         Object.keys(judgeVotesMap).forEach(function(voterId) {
           var jd = judgeVotesMap[voterId];
+          var scoredVotes = jd.votes.filter(function(v) { return v.score != null; });
           var count = jd.votes.length;
-          var avg = count > 0
-            ? (jd.votes.reduce(function(s, v) { return s + (v.score || 0); }, 0) / count).toFixed(1)
+          var avg = scoredVotes.length > 0
+            ? (scoredVotes.reduce(function(s, v) { return s + v.score; }, 0) / scoredVotes.length).toFixed(1)
             : '--';
 
           var detailHtml = '';
@@ -1207,13 +1210,14 @@
             var reel = aifilms.findReel(v.reel_id);
             var contestant = reel ? reel.contestant : '--';
             var reelNum = reel ? reel.number : '--';
+            var scoreLabel = v.score != null ? v.score : 'Missed';
             var scoreClass = '';
-            if (v.score >= 70) scoreClass = 'score-high';
-            else if (v.score >= 40) scoreClass = 'score-mid';
+            if (v.score != null && v.score >= 70) scoreClass = 'score-high';
+            else if (v.score != null && v.score >= 40) scoreClass = 'score-mid';
             else scoreClass = 'score-low';
             detailHtml += '<div class="judge-vote-row">';
             detailHtml += '<span>Reel ' + reelNum + ' - ' + escapeHtml(contestant) + '</span>';
-            detailHtml += '<span class="' + scoreClass + '">' + v.score + '</span>';
+            detailHtml += '<span class="' + scoreClass + '">' + scoreLabel + '</span>';
             detailHtml += '</div>';
           });
 
@@ -1331,7 +1335,7 @@
             reel ? reel.number : '',
             reel ? reel.contestant : '',
             v.category || (reel ? reel.category : ''),
-            v.score != null ? v.score : ''
+            v.score != null ? v.score : 'Missed'
           ].map(function(field) {
             // Escape CSV fields with commas or quotes
             var str = String(field);
