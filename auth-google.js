@@ -131,7 +131,7 @@ class GoogleAuthManager {
       const { data, error } = await this.supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + window.location.pathname,
+          redirectTo: 'https://isfreels.vercel.app/vote.html',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
