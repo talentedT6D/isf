@@ -1137,6 +1137,11 @@
           return;
         }
 
+        // Auto-save 0 for the previous reel if the user didn't vote
+        if (currentReel && !hasVoted) {
+          autoSaveZero(currentReel);
+        }
+
         // Cancel any pending reel change operations
         if (pendingReelChange) {
           console.log('Cancelling pending reel change operation');
@@ -1226,6 +1231,27 @@
             pendingReelChange = null;
           }
         }
+      }
+
+      function autoSaveZero(missedReel) {
+        var googleAuthed = window.AIFilms.auth && window.AIFilms.auth.isAuthenticated;
+        var tokenAuthed = aifilms.tokenAuth.isAuthenticated();
+        if (!googleAuthed && !tokenAuthed) return; // not authenticated, skip
+
+        console.log('Auto-saving 0 for missed reel:', missedReel.id, missedReel.contestant);
+
+        var voterName = aifilms.tokenAuth.getPersonName();
+        if (!voterName && window.AIFilms.auth && window.AIFilms.auth.getUser()) {
+          var user = window.AIFilms.auth.getUser();
+          voterName = user.user_metadata?.full_name || user.email || 'Audience';
+        }
+
+        aifilms.voteStore.saveVote(missedReel.id, 0, 'audience', voterName, missedReel.category);
+        aifilms.sync.broadcast('vote', {
+          reelId: missedReel.id,
+          score: 0,
+          voterType: 'audience'
+        });
       }
 
       async function submitVote() {

@@ -812,10 +812,14 @@
         });
 
         document.getElementById('submitBtn').addEventListener('click', submitVote);
-        document.getElementById('changeVoteBtn').addEventListener('click', changeVote);
       }
 
       async function showReel(reel) {
+        // Auto-save 0 for previous reel if the judge didn't vote
+        if (currentReel && !hasVoted) {
+          autoSaveZero(currentReel);
+        }
+
         currentReel = reel;
 
         // Reset vote state for new reel
@@ -892,6 +896,24 @@
         }
       }
 
+      function autoSaveZero(missedReel) {
+        // Skip if this reel was in a different category (wrong-category overlay was shown)
+        var judgeCategory = localStorage.getItem('judgeCategory') || '';
+        if (judgeCategory && missedReel.category && missedReel.category.toLowerCase() !== judgeCategory.toLowerCase()) {
+          return;
+        }
+
+        var judgeName = localStorage.getItem('judgeName') || 'Judge';
+        console.log('Auto-saving 0 for missed reel:', missedReel.id, missedReel.contestant);
+
+        aifilms.voteStore.saveVote(missedReel.id, 0, 'judge', judgeName, missedReel.category);
+        aifilms.sync.broadcast('vote', {
+          reelId: missedReel.id,
+          score: 0,
+          voterType: 'judge'
+        });
+      }
+
       function submitVote() {
         if (!currentReel) return;
 
@@ -908,10 +930,6 @@
         document.getElementById('successOverlay').classList.add('active');
 
         if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-      }
-
-      function changeVote() {
-        document.getElementById('successOverlay').classList.remove('active');
       }
 
       // IMMEDIATE check - redirect before AIFilms even loads
