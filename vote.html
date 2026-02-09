@@ -706,6 +706,10 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="vote-history.css?v=4">
+  <link rel="stylesheet" href="auth-google.css?v=3">
+  <script src="vote-history.js?v=6"></script>
+  <script src="auth-google.js?v=3"></script>
 </head>
 <body>
   <!-- Logo -->
@@ -716,6 +720,23 @@
     <span class="connection-indicator" id="connectionIndicator"></span>
     <span id="reelCounter">Reel 1 of 10</span>
   </div>
+
+  <!-- Auth Button -->
+  <button id="authBtn" style="
+    position: fixed;
+    top: 4.5rem;
+    right: 1.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.2s;
+  ">Sign In</button>
 
   <!-- Floating blobs -->
   <div class="blob blob-1"></div>
@@ -787,10 +808,13 @@
         </svg>
         Submit Vote
       </button>
+
+      <!-- Vote History Section -->
+      <div id="voteHistoryContainer"></div>
     </main>
   </div>
 
-  <script src="sync.js"></script>
+  <script src="sync.js?v=3"></script>
   <script>
     (function() {
       var aifilms = window.AIFilms;
@@ -868,6 +892,12 @@
           console.log('Received reel-change event:', data);
           var reel = aifilms.MOCK_REELS[data.reelIndex];
           showReel(reel);
+
+          // Update vote history
+          if (window.voteHistory) {
+            window.voteHistory.setCurrentReel(reel.id);
+            setTimeout(function() { window.voteHistory.refresh(); }, 500);
+          }
         });
 
         // Handle state sync from control panel (on reconnect)
@@ -899,6 +929,52 @@
         updateConnectionIndicator(aifilms.sync.isConnected ? 'connected' : 'disconnected');
 
         document.getElementById('submitBtn').addEventListener('click', submitVote);
+
+        // Initialize vote history
+        window.voteHistory = new VoteHistory(aifilms.voteStore, aifilms.MOCK_REELS);
+
+        // Render on page load
+        if (aifilms.ready) {
+          window.voteHistory.render('voteHistoryContainer');
+        } else {
+          window.addEventListener('aifilms-ready', function() {
+            window.voteHistory.render('voteHistoryContainer');
+          });
+        }
+
+        // Initialize Google authentication (MANDATORY)
+        if (aifilms.sync && aifilms.sync.getSupabase) {
+          aifilms.sync.on('connected', async function() {
+            const authManager = new GoogleAuthManager(
+              aifilms.sync.getSupabase(),
+              aifilms.deviceManager
+            );
+            const isAuthenticated = await authManager.init();
+
+            // Store in both places for compatibility
+            window.AIFilms.auth = authManager;
+            aifilms.auth = authManager;
+
+            console.log('🔐 Google Auth initialized, authenticated:', isAuthenticated);
+            console.log('🔐 Auth stored at window.AIFilms.auth:', window.AIFilms.auth);
+
+            // Ensure UI updates after a short delay (DOM might not be ready)
+            setTimeout(() => authManager.updateUI(), 100);
+            setTimeout(() => authManager.updateUI(), 500);
+
+            if (isAuthenticated) {
+              // Verify voter setup in database
+              const isVerified = await authManager.verifySetup();
+              if (isVerified) {
+                console.log('✅ Voter setup verified - ready to vote!');
+              } else {
+                console.error('❌ Voter setup verification failed!');
+              }
+            } else {
+              console.log('⚠️ User not authenticated - showing login screen');
+            }
+          });
+        }
       }
 
       async function showReel(reel) {
@@ -923,10 +999,16 @@
         currentReel = reel;
         hasVoted = false;
 
-        // Update UI immediately (synchronous operations)
-        document.getElementById('waitingOverlay').classList.remove('active');
-        document.getElementById('successOverlay').classList.remove('active');
+        // Update vote history with current reel
+        if (window.voteHistory) {
+          window.voteHistory.setCurrentReel(reel.id);
+        }
 
+        // CRITICAL: Hide overlays FIRST
+        document.getElementById('successOverlay').classList.remove('active');
+        document.getElementById('waitingOverlay').classList.remove('active');
+
+        // Update UI synchronously
         document.getElementById('reelCounter').textContent = 'Reel ' + reel.number + ' of ' + aifilms.MOCK_REELS.length;
         document.getElementById('contestantName').textContent = reel.contestant;
         document.getElementById('category').textContent = reel.category;
@@ -935,57 +1017,137 @@
         setSliderValue(50);
         updateScore(50);
 
-        // Check if already voted for this reel (async with timeout and cancellation)
+        // Check existing vote in background (NON-BLOCKING)
+        checkExistingVoteAsync(reel, thisOperation);
+      }
+
+      // NEW: Separate async function (runs in background)
+      async function checkExistingVoteAsync(reel, operation) {
         try {
-          // Race between the actual query and a 5-second timeout
+          // Race between the actual query and a 3-second timeout (reduced from 5s)
           const timeoutPromise = new Promise(function(_, reject) {
-            setTimeout(function() { reject(new Error('Vote check timeout')); }, 5000);
+            setTimeout(function() { reject(new Error('Vote check timeout')); }, 3000);
           });
 
           const votePromise = aifilms.voteStore.getMyVote(reel.id);
           const existingVote = await Promise.race([votePromise, timeoutPromise]);
 
           // Check if this operation was cancelled while waiting
-          if (thisOperation.cancelled) {
-            console.log('Operation cancelled after async call for', reel.id);
+          if (operation.cancelled) {
+            console.log('Vote check cancelled for', reel.id);
             return;
           }
 
-          // Verify we're still on the same reel (double-check)
-          if (currentReel && currentReel.id === reel.id && existingVote !== null) {
+          // Verify we're still on the same reel (triple-check)
+          if (currentReel && currentReel.id === reel.id &&
+              lastReelId === reel.id && existingVote !== null) {
+
+            console.log('Found existing vote for', reel.id, ':', existingVote);
+
+            // Update vote state
             hasVoted = true;
             currentScore = existingVote;
             setSliderValue(existingVote);
             updateScore(existingVote);
-            document.getElementById('successOverlay').classList.add('active');
+
+            // Show success overlay ONLY if user hasn't interacted with slider
+            // (Check if score is still default or matches existing vote)
+            if (currentScore === existingVote) {
+              document.getElementById('successOverlay').classList.add('active');
+            }
           }
         } catch (err) {
-          // Only log if operation wasn't cancelled
-          if (!thisOperation.cancelled) {
-            console.log('Could not check existing vote:', err.message || err);
+          // Log timeout/errors but don't block UI
+          if (err.message === 'Vote check timeout') {
+            console.warn('Vote check timed out for', reel.id, '- assuming no vote');
+          } else {
+            console.warn('Could not check existing vote:', err.message || err);
           }
+          // CRITICAL: Assume no vote on error/timeout - allow user to vote
+          hasVoted = false;
         } finally {
           // Clear pending operation if it's still this one
-          if (pendingReelChange === thisOperation) {
+          if (pendingReelChange === operation) {
             pendingReelChange = null;
+          }
+
+          // Refresh vote history after vote check completes
+          if (window.voteHistory && currentReel && currentReel.id === reel.id) {
+            window.voteHistory.refresh();
           }
         }
       }
 
-      function submitVote() {
-        if (!currentReel) return;
+      async function submitVote() {
+        // Check authentication first (check both locations)
+        const auth = window.AIFilms.auth || aifilms.auth;
 
-        aifilms.voteStore.saveVote(currentReel.id, currentScore, 'audience');
-        aifilms.sync.broadcast('vote', {
-          reelId: currentReel.id,
+        if (!auth) {
+          console.error('❌ Vote blocked: Auth manager not initialized');
+          alert('Please wait for authentication to complete');
+          return;
+        }
+
+        if (!auth.canVote()) {
+          console.error('❌ Vote blocked: User not authenticated or voter ID missing');
+          alert('Please sign in with Google to vote');
+          return;
+        }
+
+        if (!currentReel) {
+          console.warn('❌ Cannot submit vote: no current reel');
+          return;
+        }
+
+        // Prevent double-submission
+        if (hasVoted) {
+          console.log('⚠️ Vote already submitted for', currentReel.id);
+          return;
+        }
+
+        console.log('📊 Submitting vote:', {
+          reel: currentReel.id,
+          contestant: currentReel.contestant,
           score: currentScore,
-          voterType: 'audience'
+          voterId: window.AIFilms.deviceManager.getVoterId()
         });
 
-        hasVoted = true;
-        document.getElementById('successOverlay').classList.add('active');
+        try {
+          // Save vote to database
+          const result = await aifilms.voteStore.saveVote(currentReel.id, currentScore, 'audience');
 
-        if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+          if (!result) {
+            console.error('❌ Vote save failed - no result returned');
+            alert('Failed to save vote. Please try again.');
+            return;
+          }
+
+          console.log('✅ Vote saved successfully:', result);
+
+          // Broadcast vote for real-time updates
+          aifilms.sync.broadcast('vote', {
+            reelId: currentReel.id,
+            score: currentScore,
+            voterType: 'audience'
+          });
+
+          // Update state
+          hasVoted = true;
+
+          // Show success overlay
+          document.getElementById('successOverlay').classList.add('active');
+
+          if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+
+          // Refresh vote history after voting
+          if (window.voteHistory) {
+            setTimeout(function() { window.voteHistory.refresh(); }, 1000);
+          }
+
+        } catch (error) {
+          console.error('❌ Vote submission error:', error);
+          alert('Failed to submit vote. Please check your connection and try again.');
+        }
       }
 
       if (aifilms && aifilms.ready) {

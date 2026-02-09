@@ -932,47 +932,61 @@
         hasVoted = false;
         selectedScore = 0;
 
-        // Update UI immediately (synchronous operations)
-        document.getElementById('waitingOverlay').classList.remove('active');
+        // CRITICAL: Hide overlays FIRST
         document.getElementById('votedOverlay').classList.remove('active');
+        document.getElementById('waitingOverlay').classList.remove('active');
 
+        // Update UI synchronously
         document.getElementById('reelNumber').textContent = 'Reel ' + reel.number + ' of ' + aifilms.MOCK_REELS.length;
         document.getElementById('contestantName').textContent = reel.contestant;
         document.getElementById('category').textContent = reel.category;
 
         resetSelection();
 
-        // Check vote status asynchronously with timeout and cancellation
+        // Check existing vote in background (NON-BLOCKING)
+        checkExistingVoteAsync(reel, thisOperation);
+      }
+
+      // NEW: Separate async function (runs in background)
+      async function checkExistingVoteAsync(reel, operation) {
         try {
-          // Race between the actual query and a 5-second timeout
+          // Race between the actual query and a 3-second timeout (reduced from 5s)
           const timeoutPromise = new Promise(function(_, reject) {
-            setTimeout(function() { reject(new Error('Vote check timeout')); }, 5000);
+            setTimeout(function() { reject(new Error('Vote check timeout')); }, 3000);
           });
 
           const votePromise = aifilms.voteStore.getMyVote(reel.id);
           const existingVote = await Promise.race([votePromise, timeoutPromise]);
 
           // Check if this operation was cancelled while waiting
-          if (thisOperation.cancelled) {
-            console.log('Operation cancelled after async call for', reel.id);
+          if (operation.cancelled) {
+            console.log('Vote check cancelled for', reel.id);
             return;
           }
 
-          // Verify we're still on the same reel
-          if (currentReel && currentReel.id === reel.id) {
-            if (existingVote !== null) {
-              hasVoted = true;
-              selectedScore = existingVote;
-              showVotedState();
-            }
+          // Verify we're still on the same reel (triple-check)
+          if (currentReel && currentReel.id === reel.id &&
+              lastReelId === reel.id && existingVote !== null) {
+
+            console.log('Found existing vote for', reel.id, ':', existingVote);
+
+            // Update vote state
+            hasVoted = true;
+            selectedScore = existingVote;
+            showVotedState();
           }
         } catch (err) {
-          if (!thisOperation.cancelled) {
-            console.log('Could not check existing vote:', err.message || err);
+          // Log timeout/errors but don't block UI
+          if (err.message === 'Vote check timeout') {
+            console.warn('Vote check timed out for', reel.id, '- assuming no vote');
+          } else {
+            console.warn('Could not check existing vote:', err.message || err);
           }
+          // CRITICAL: Assume no vote on error/timeout - allow user to vote
+          hasVoted = false;
         } finally {
           // Clear pending operation if it's still this one
-          if (pendingReelChange === thisOperation) {
+          if (pendingReelChange === operation) {
             pendingReelChange = null;
           }
         }

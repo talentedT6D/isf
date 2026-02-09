@@ -84,7 +84,7 @@ class DeviceManager {
   constructor() {
     this.deviceId = this.getOrCreateDeviceId();
     this.deviceType = this.detectDeviceType();
-    this.voterId = null; // UUID from Supabase voters table
+    this.voterId = localStorage.getItem('aifilms-voter-id') || null; // Load from localStorage
   }
 
   getOrCreateDeviceId() {
@@ -150,6 +150,59 @@ class DeviceManager {
 
   getVoterId() {
     return this.voterId || localStorage.getItem('aifilms-voter-id');
+  }
+
+  async linkEmail(supabase, email, authUserId) {
+    if (!this.voterId) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('voters')
+        .update({
+          email: email,
+          auth_user_id: authUserId,
+          last_seen_at: new Date().toISOString()
+        })
+        .eq('id', this.voterId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error linking email:', error);
+        return null;
+      }
+
+      return data;
+    } catch (err) {
+      console.error('Email link failed:', err);
+      return null;
+    }
+  }
+
+  async recoverFromEmail(supabase, email) {
+    try {
+      // Find voter by email
+      const { data, error } = await supabase
+        .from('voters')
+        .select('*')
+        .eq('email', email)
+        .single();
+
+      if (error || !data) {
+        console.error('No voter found with email:', email);
+        return null;
+      }
+
+      // Update local storage with recovered voter
+      this.voterId = data.id;
+      localStorage.setItem('aifilms-voter-id', data.id);
+      localStorage.setItem('aifilms-device-id', this.deviceId);
+
+      return data;
+    } catch (err) {
+      console.error('Recovery failed:', err);
+      return null;
+    }
   }
 }
 

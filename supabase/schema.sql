@@ -281,3 +281,16 @@ ON CONFLICT (id) DO UPDATE SET
   contestant_name = EXCLUDED.contestant_name,
   category = EXCLUDED.category,
   video_url = EXCLUDED.video_url;
+
+-- ============================================================
+-- EMAIL AUTHENTICATION EXTENSIONS
+-- ============================================================
+
+-- Add email fields to voters table for magic link authentication
+ALTER TABLE voters ADD COLUMN IF NOT EXISTS email TEXT UNIQUE;
+ALTER TABLE voters ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT false;
+ALTER TABLE voters ADD COLUMN IF NOT EXISTS auth_user_id UUID REFERENCES auth.users(id);
+
+-- Indexes for email lookups and authentication
+CREATE INDEX IF NOT EXISTS idx_voters_email ON voters(email);
+CREATE INDEX IF NOT EXISTS idx_voters_auth_user_id ON voters(auth_user_id);

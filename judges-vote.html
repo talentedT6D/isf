@@ -718,9 +718,11 @@
         // Reset vote state for new reel
         hasVoted = false;
 
-        document.getElementById('waitingOverlay').classList.remove('active');
+        // CRITICAL: Hide overlays FIRST
         document.getElementById('successOverlay').classList.remove('active');
+        document.getElementById('waitingOverlay').classList.remove('active');
 
+        // Update UI synchronously
         document.getElementById('reelCounter').textContent = 'Reel ' + reel.number + ' of ' + aifilms.MOCK_REELS.length;
         document.getElementById('contestantName').textContent = reel.contestant;
         document.getElementById('category').textContent = reel.category;
@@ -729,18 +731,43 @@
         setSliderValue(50);
         updateScore(50);
 
-        // Check if already voted for this reel (async)
+        // Check existing vote in background (NON-BLOCKING)
+        checkExistingVoteAsync(reel);
+      }
+
+      // NEW: Separate async function (runs in background)
+      async function checkExistingVoteAsync(reel) {
         try {
-          const existingVote = await aifilms.voteStore.getMyVote(reel.id);
-          if (existingVote !== null) {
+          // Add timeout to prevent hanging
+          const timeoutPromise = new Promise(function(_, reject) {
+            setTimeout(function() { reject(new Error('Vote check timeout')); }, 3000);
+          });
+
+          const votePromise = aifilms.voteStore.getMyVote(reel.id);
+          const existingVote = await Promise.race([votePromise, timeoutPromise]);
+
+          // Verify we're still on the same reel
+          if (currentReel && currentReel.id === reel.id && existingVote !== null) {
+            console.log('Found existing vote for', reel.id, ':', existingVote);
+
             hasVoted = true;
             currentScore = existingVote;
             setSliderValue(existingVote);
             updateScore(existingVote);
-            document.getElementById('successOverlay').classList.add('active');
+
+            // Only show overlay if user hasn't changed score
+            if (currentScore === existingVote) {
+              document.getElementById('successOverlay').classList.add('active');
+            }
           }
         } catch (err) {
-          console.log('Could not check existing vote:', err);
+          if (err.message === 'Vote check timeout') {
+            console.warn('Vote check timed out for', reel.id, '- assuming no vote');
+          } else {
+            console.warn('Could not check existing vote:', err);
+          }
+          // Assume no vote on error - allow user to vote
+          hasVoted = false;
         }
       }
 
