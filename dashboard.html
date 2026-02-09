@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Dashboard - ISF</title>
+  <link rel="icon" type="image/png" href="ISF logos_2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --glass-dark: rgba(255, 255, 255, 0.08);
+      --glass-dark-strong: rgba(255, 255, 255, 0.12);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --glass-blur: 20px;
+      --text-light: #ffffff;
+      --text-medium: rgba(255, 255, 255, 0.7);
+      --text-muted: rgba(255, 255, 255, 0.5);
+      --accent-pink: #FF6B95;
+      --accent-coral: #FF8A80;
+      --accent-orange: #FF8C42;
+      --success: #10B981;
+      --danger: #EF4444;
+      --warning: #F59E0B;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+      min-height: 100vh;
+      color: var(--text-light);
+    }
+
+    /* Logo Watermark */
+    .logo-watermark {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      width: 60px;
+      height: auto;
+      opacity: 0.8;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    /* Floating blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .blob-1 {
+      width: 400px;
+      height: 400px;
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+      top: -100px;
+      right: -100px;
+      animation: blobFloat 20s ease-in-out infinite;
+    }
+
+    .blob-2 {
+      width: 350px;
+      height: 350px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      bottom: 10%;
+      left: -80px;
+      animation: blobFloat 25s ease-in-out infinite reverse;
+    }
+
+    .blob-3 {
+      width: 300px;
+      height: 300px;
+      background: linear-gradient(135deg, #FF6B95 0%, #ec4899 100%);
+      top: 40%;
+      right: 20%;
+      animation: blobFloat 18s ease-in-out infinite;
+    }
+
+    @keyframes blobFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -40px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .dashboard-header {
+      padding: 2rem 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-left: 5rem;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .header-left h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-light);
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #A78BFA;
+      width: fit-content;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: livePulse 2s infinite;
+    }
+
+    @keyframes livePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+      50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.25rem;
+      background: var(--glass-dark);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      color: var(--text-medium);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .back-link svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .back-link:hover {
+      background: var(--glass-dark-strong);
+      color: var(--text-light);
+      transform: translateY(-2px);
+      border-color: var(--accent-pink);
+    }
+
+    /* Summary Stats Row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--glass-dark);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 107, 149, 0.4);
+      background: var(--glass-dark-strong);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -20%;
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.15) 0%, rgba(255, 140, 66, 0.1) 100%);
+      border-radius: 50%;
+      filter: blur(30px);
+      pointer-events: none;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 1;
+      line-height: 1.2;
+    }
+
+    .stat-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Category Tabs */
+    .category-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 0.5rem 1.15rem;
+      background: var(--glass-dark);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-medium);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      background: var(--glass-dark-strong);
+      color: var(--text-light);
+      transform: translateY(-2px);
+      border-color: var(--accent-pink);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 15px rgba(255, 107, 149, 0.4);
+    }
+
+    /* Glass Card (shared) */
+    .glass-card {
+      background: var(--glass-dark);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -20%;
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.1) 0%, rgba(255, 140, 66, 0.08) 100%);
+      border-radius: 50%;
+      filter: blur(50px);
+      pointer-events: none;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+
+    /* Filter row */
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .filter-row label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .filter-select {
+      padding: 0.4rem 0.8rem;
+      background: var(--glass-dark-strong);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-light);
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 1.5rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+    }
+
+    .filter-select option {
+      background: #1a1a2e;
+      color: var(--text-light);
+    }
+
+    /* Vote Log Table */
+    .table-wrapper {
+      max-height: 400px;
+      overflow-y: auto;
+      position: relative;
+      z-index: 1;
+      border-radius: 12px;
+    }
+
+    .table-wrapper::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 3px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .vote-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .vote-table thead {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .vote-table thead th {
+      background: rgba(26, 26, 46, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 0.75rem 0.6rem;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--glass-border);
+      white-space: nowrap;
+    }
+
+    .vote-table tbody tr {
+      transition: background 0.2s ease;
+    }
+
+    .vote-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .vote-table tbody td {
+      padding: 0.6rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-medium);
+      white-space: nowrap;
+    }
+
+    /* Type Badge */
+    .type-badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .type-badge.judge {
+      background: rgba(139, 92, 246, 0.2);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      color: #a78bfa;
+    }
+
+    .type-badge.audience {
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #818cf8;
+    }
+
+    /* Score color classes */
+    .score-high {
+      color: var(--success);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+    }
+
+    .score-mid {
+      color: var(--warning);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+    }
+
+    .score-low {
+      color: var(--danger);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+    }
+
+    /* Judge Breakdown */
+    .judge-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .judge-item {
+      background: var(--glass-dark-strong);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .judge-item:hover {
+      border-color: rgba(139, 92, 246, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .judge-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .judge-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+
+    .judge-category-badge {
+      padding: 0.2rem 0.6rem;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 100px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: #a78bfa;
+    }
+
+    .judge-stats {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .judge-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .judge-stat-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .judge-stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .judge-votes-detail {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: none;
+    }
+
+    .judge-votes-detail.expanded {
+      display: block;
+    }
+
+    .judge-vote-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.35rem 0;
+      font-size: 0.8rem;
+      color: var(--text-medium);
+    }
+
+    .judge-vote-row span:last-child {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+
+    .expand-indicator {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+
+    /* Per-Category Results */
+    .category-results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.25rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .category-result-block {
+      background: var(--glass-dark-strong);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      overflow: hidden;
+    }
+
+    .category-result-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-light);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .category-result-title .cat-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+    }
+
+    .mini-leaderboard {
+      width: 100%;
+      font-size: 0.8rem;
+      border-collapse: collapse;
+    }
+
+    .mini-leaderboard thead th {
+      text-align: left;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      padding: 0.4rem 0.3rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .mini-leaderboard tbody td {
+      padding: 0.45rem 0.3rem;
+      color: var(--text-medium);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .mini-leaderboard .winner-row td {
+      color: var(--text-light);
+      font-weight: 600;
+    }
+
+    .winner-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.15rem 0.5rem;
+      background: rgba(255, 193, 7, 0.15);
+      border: 1px solid rgba(255, 193, 7, 0.3);
+      border-radius: 100px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #fbbf24;
+    }
+
+    .mini-score {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    /* Export Button */
+    .export-btn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 0.85rem 1.75rem;
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+      border: none;
+      border-radius: 100px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(255, 107, 149, 0.4);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .export-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(255, 107, 149, 0.5);
+    }
+
+    .export-btn:active {
+      transform: scale(0.97);
+    }
+
+    .export-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+      position: relative;
+      z-index: 1;
+    }
+
+    .empty-state p {
+      font-size: 0.95rem;
+    }
+
+    /* Loading spinner */
+    .loading-spinner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .loading-spinner .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(255, 107, 149, 0.2);
+      border-top-color: #FF6B95;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Footer spacer for fixed export btn */
+    .footer-spacer {
+      height: 5rem;
+    }
+
+    /* Focus states */
+    .tab-btn:focus-visible,
+    .export-btn:focus-visible,
+    .back-link:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255, 107, 149, 0.5);
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .category-results-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-left: 4.5rem;
+      }
+
+      .container {
+        padding: 0 1rem;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+      }
+
+      .stat-card {
+        padding: 1.25rem;
+      }
+
+      .category-tabs {
+        gap: 0.4rem;
+      }
+
+      .tab-btn {
+        padding: 0.4rem 0.9rem;
+        font-size: 0.75rem;
+      }
+
+      .vote-table {
+        font-size: 0.75rem;
+      }
+
+      .vote-table thead th {
+        font-size: 0.65rem;
+        padding: 0.5rem 0.4rem;
+      }
+
+      .vote-table tbody td {
+        padding: 0.5rem 0.4rem;
+      }
+
+      .judge-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .export-btn {
+        bottom: 1rem;
+        right: 1rem;
+        padding: 0.7rem 1.25rem;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .dashboard-header {
+        margin-left: 4rem;
+      }
+
+      .header-left h1 {
+        font-size: 1.5rem;
+      }
+
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+
+      .stat-value {
+        font-size: 1.3rem;
+      }
+
+      .logo-watermark {
+        width: 50px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Logo Watermark -->
+  <img src="ISF logos_2.png" alt="ISF Logo" class="logo-watermark">
+
+  <!-- Floating blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <div class="header-badge">
+          <span class="badge-dot"></span>
+          Live Dashboard
+        </div>
+        <h1>Data Dashboard</h1>
+      </div>
+      <a href="organizers.html" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Back to Organizers
+      </a>
+    </header>
+
+    <!-- Summary Stats Row -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card">
+        <div class="stat-label">Total Votes</div>
+        <div class="stat-value" id="statTotalVotes">--</div>
+        <div class="stat-sub">all time</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Voters</div>
+        <div class="stat-value" id="statTotalVoters">--</div>
+        <div class="stat-sub">unique</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Judges</div>
+        <div class="stat-value" id="statActiveJudges">--</div>
+        <div class="stat-sub">registered</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Categories w/ Votes</div>
+        <div class="stat-value" id="statCategoriesWithVotes">--</div>
+        <div class="stat-sub">of 5</div>
+      </div>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="category-tabs" id="categoryTabs">
+      <div class="tab-bar" id="tabBar"></div>
+    </div>
+
+    <!-- Vote Log Table -->
+    <div class="glass-card" id="voteLogTable">
+      <div class="card-header">
+        <h2 class="card-title">Vote Log</h2>
+        <div class="filter-row">
+          <label for="voterTypeFilter">Type:</label>
+          <select id="voterTypeFilter" class="filter-select">
+            <option value="all">All</option>
+            <option value="judge">Judge</option>
+            <option value="audience">Audience</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table class="vote-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Voter</th>
+              <th>Type</th>
+              <th>Reel #</th>
+              <th>Contestant</th>
+              <th>Category</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody id="voteLogBody">
+            <tr>
+              <td colspan="7">
+                <div class="loading-spinner"><div class="spinner"></div></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Judge Breakdown Panel -->
+    <div class="glass-card" id="judgeBreakdown">
+      <div class="card-header">
+        <h2 class="card-title">Judge Breakdown</h2>
+      </div>
+      <div class="judge-grid" id="judgeGrid">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- Per-Category Results -->
+    <div class="glass-card" id="categoryResults">
+      <div class="card-header">
+        <h2 class="card-title">Per-Category Results</h2>
+      </div>
+      <div class="category-results-grid" id="categoryResultsGrid">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <div class="footer-spacer"></div>
+  </div>
+
+  <!-- Export Button -->
+  <button class="export-btn" id="exportBtn" onclick="exportCSV()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    Export CSV
+  </button>
+
+  <script src="sync.js"></script>
+  <script>
+    (function() {
+      var aifilms = window.AIFilms;
+      var currentCategory = 'All';
+      var currentVoterType = 'all';
+      var allVotes = [];
+      var allJudges = [];
+      var allAggregates = [];
+      var currentVotes = []; // filtered set used by exportCSV
+      var refreshTimer = null;
+
+      // Expose currentVotes and exportCSV globally for the onclick
+      window.exportCSV = exportCSV;
+
+      // ---- Wait for AIFilms ready ----
+      function boot() {
+        if (aifilms && aifilms.ready) {
+          init();
+        } else {
+          window.addEventListener('aifilms-ready', function() {
+            aifilms = window.AIFilms;
+            init();
+          });
+          document.addEventListener('DOMContentLoaded', function() {
+            if (window.AIFilms && window.AIFilms.ready) {
+              aifilms = window.AIFilms;
+              init();
+            }
+          });
+        }
+      }
+
+      function renderTabs() {
+        var bar = document.getElementById('tabBar');
+        var html = '<button class="tab-btn active" data-category="All">All</button>';
+        aifilms.categories.forEach(function(cat) {
+          html += '<button class="tab-btn" data-category="' + cat + '">' + cat + '</button>';
+        });
+        bar.innerHTML = html;
+      }
+
+      function init() {
+        renderTabs();
+        setupTabs();
+        setupFilter();
+        loadDashboardData();
+        refreshTimer = setInterval(loadDashboardData, 5000);
+      }
+
+      // ---- Data Loading ----
+      async function loadDashboardData() {
+        var supabase = aifilms.sync.getSupabase();
+        if (!supabase) return;
+
+        try {
+          // All votes
+          var votesResult = await supabase
+            .from('votes')
+            .select('id, reel_id, voter_id, voter_name, voter_type, score, category, created_at')
+            .order('created_at', { ascending: false })
+            .limit(1000);
+
+          // Judge tokens
+          var judgesResult = await supabase
+            .from('tokens')
+            .select('*')
+            .eq('token_type', 'judge');
+
+          // Aggregates
+          var aggregatesResult = await supabase
+            .from('vote_aggregates')
+            .select('*')
+            .order('final_score', { ascending: false });
+
+          allVotes = votesResult.data || [];
+          allJudges = judgesResult.data || [];
+          allAggregates = aggregatesResult.data || [];
+
+          renderAll();
+        } catch (err) {
+          console.error('Dashboard data load error:', err);
+        }
+      }
+
+      function renderAll() {
+        var filteredVotes = filterVotes(allVotes);
+        currentVotes = filteredVotes;
+        renderStats(allVotes, allJudges);
+        renderVoteLog(filteredVotes);
+        renderJudgeBreakdown(allJudges, allVotes);
+        renderCategoryResults(allAggregates);
+      }
+
+      function filterVotes(votes) {
+        var filtered = votes;
+        if (currentCategory !== 'All') {
+          filtered = filtered.filter(function(v) {
+            var reel = aifilms.findReel(v.reel_id);
+            var cat = v.category || (reel ? reel.category : '');
+            return cat === currentCategory;
+          });
+        }
+        if (currentVoterType !== 'all') {
+          filtered = filtered.filter(function(v) {
+            return v.voter_type === currentVoterType;
+          });
+        }
+        return filtered;
+      }
+
+      // ---- Render Stats ----
+      function renderStats(votes, judges) {
+        var relevantVotes = votes;
+        if (currentCategory !== 'All') {
+          relevantVotes = votes.filter(function(v) {
+            var reel = aifilms.findReel(v.reel_id);
+            var cat = v.category || (reel ? reel.category : '');
+            return cat === currentCategory;
+          });
+        }
+
+        document.getElementById('statTotalVotes').textContent = relevantVotes.length;
+
+        var uniqueVoters = new Set();
+        relevantVotes.forEach(function(v) { uniqueVoters.add(v.voter_id); });
+        document.getElementById('statTotalVoters').textContent = uniqueVoters.size;
+
+        document.getElementById('statActiveJudges').textContent = judges.length;
+
+        var categoriesWithVotes = new Set();
+        votes.forEach(function(v) {
+          var reel = aifilms.findReel(v.reel_id);
+          var cat = v.category || (reel ? reel.category : '');
+          if (cat) categoriesWithVotes.add(cat);
+        });
+        document.getElementById('statCategoriesWithVotes').textContent = categoriesWithVotes.size;
+      }
+
+      // ---- Render Vote Log ----
+      function renderVoteLog(votes) {
+        var tbody = document.getElementById('voteLogBody');
+
+        if (!votes || votes.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>No votes recorded yet</p></div></td></tr>';
+          return;
+        }
+
+        var html = '';
+        votes.forEach(function(v) {
+          var reel = aifilms.findReel(v.reel_id);
+          var time = v.created_at ? new Date(v.created_at).toLocaleTimeString() : '--';
+          var voterName = v.voter_name || 'Anonymous';
+          var type = v.voter_type || 'audience';
+          var reelNum = reel ? reel.number : '--';
+          var contestant = reel ? reel.contestant : '--';
+          var category = v.category || (reel ? reel.category : '--');
+          var score = v.score != null ? v.score : '--';
+
+          var typeBadgeClass = type === 'judge' ? 'judge' : 'audience';
+          var scoreClass = '';
+          if (typeof score === 'number') {
+            if (score >= 70) scoreClass = 'score-high';
+            else if (score >= 40) scoreClass = 'score-mid';
+            else scoreClass = 'score-low';
+          }
+
+          html += '<tr>';
+          html += '<td>' + time + '</td>';
+          html += '<td>' + escapeHtml(voterName) + '</td>';
+          html += '<td><span class="type-badge ' + typeBadgeClass + '">' + type + '</span></td>';
+          html += '<td>' + reelNum + '</td>';
+          html += '<td>' + escapeHtml(contestant) + '</td>';
+          html += '<td>' + escapeHtml(category) + '</td>';
+          html += '<td><span class="' + scoreClass + '">' + score + '</span></td>';
+          html += '</tr>';
+        });
+
+        tbody.innerHTML = html;
+      }
+
+      // ---- Render Judge Breakdown ----
+      function renderJudgeBreakdown(judges, votes) {
+        var grid = document.getElementById('judgeGrid');
+
+        if (!judges || judges.length === 0) {
+          grid.innerHTML = '<div class="empty-state"><p>No judges registered yet</p></div>';
+          return;
+        }
+
+        // Group judge votes by voter_id (from token)
+        var judgeVotesMap = {};
+        judges.forEach(function(j) {
+          judgeVotesMap[j.voter_id] = {
+            name: j.person_name || 'Unknown Judge',
+            category: j.category || '--',
+            votes: []
+          };
+        });
+
+        var judgeVotes = votes.filter(function(v) { return v.voter_type === 'judge'; });
+
+        // Filter by category if active
+        if (currentCategory !== 'All') {
+          judgeVotes = judgeVotes.filter(function(v) {
+            var reel = aifilms.findReel(v.reel_id);
+            var cat = v.category || (reel ? reel.category : '');
+            return cat === currentCategory;
+          });
+        }
+
+        judgeVotes.forEach(function(v) {
+          if (judgeVotesMap[v.voter_id]) {
+            judgeVotesMap[v.voter_id].votes.push(v);
+          }
+        });
+
+        var html = '';
+        Object.keys(judgeVotesMap).forEach(function(voterId) {
+          var jd = judgeVotesMap[voterId];
+          var count = jd.votes.length;
+          var avg = count > 0
+            ? (jd.votes.reduce(function(s, v) { return s + (v.score || 0); }, 0) / count).toFixed(1)
+            : '--';
+
+          var detailHtml = '';
+          jd.votes.forEach(function(v) {
+            var reel = aifilms.findReel(v.reel_id);
+            var contestant = reel ? reel.contestant : '--';
+            var reelNum = reel ? reel.number : '--';
+            var scoreClass = '';
+            if (v.score >= 70) scoreClass = 'score-high';
+            else if (v.score >= 40) scoreClass = 'score-mid';
+            else scoreClass = 'score-low';
+            detailHtml += '<div class="judge-vote-row">';
+            detailHtml += '<span>Reel ' + reelNum + ' - ' + escapeHtml(contestant) + '</span>';
+            detailHtml += '<span class="' + scoreClass + '">' + v.score + '</span>';
+            detailHtml += '</div>';
+          });
+
+          html += '<div class="judge-item" onclick="this.querySelector(\'.judge-votes-detail\').classList.toggle(\'expanded\');this.querySelector(\'.expand-indicator\').textContent=this.querySelector(\'.judge-votes-detail\').classList.contains(\'expanded\')?\'Click to collapse\':\'Click to expand\'">';
+          html += '<div class="judge-item-header">';
+          html += '<span class="judge-name">' + escapeHtml(jd.name) + '</span>';
+          html += '<span class="judge-category-badge">' + escapeHtml(jd.category) + '</span>';
+          html += '</div>';
+          html += '<div class="judge-stats">';
+          html += '<div class="judge-stat"><span class="judge-stat-label">Votes Cast</span><span class="judge-stat-value">' + count + '</span></div>';
+          html += '<div class="judge-stat"><span class="judge-stat-label">Avg Score</span><span class="judge-stat-value">' + avg + '</span></div>';
+          html += '</div>';
+          if (count > 0) {
+            html += '<div class="judge-votes-detail">' + detailHtml + '</div>';
+            html += '<div class="expand-indicator">Click to expand</div>';
+          }
+          html += '</div>';
+        });
+
+        grid.innerHTML = html || '<div class="empty-state"><p>No judge data available</p></div>';
+      }
+
+      // ---- Render Category Results ----
+      function renderCategoryResults(aggregates) {
+        var grid = document.getElementById('categoryResultsGrid');
+        var categories = currentCategory === 'All'
+          ? aifilms.categories
+          : [currentCategory];
+
+        if (!aggregates || aggregates.length === 0) {
+          grid.innerHTML = '<div class="empty-state"><p>No results yet</p></div>';
+          return;
+        }
+
+        var html = '';
+
+        categories.forEach(function(cat) {
+          var categoryReels = aifilms.reels.filter(function(r) { return r.category === cat; });
+          var reelAggregates = [];
+
+          categoryReels.forEach(function(reel) {
+            var agg = aggregates.find(function(a) { return a.reel_id === reel.id; });
+            reelAggregates.push({
+              reel: reel,
+              judgeAvg: agg ? parseFloat(agg.judge_average) || 0 : 0,
+              audienceAvg: agg ? parseFloat(agg.audience_average) || 0 : 0,
+              finalScore: agg ? parseFloat(agg.final_score) || 0 : 0
+            });
+          });
+
+          reelAggregates.sort(function(a, b) { return b.finalScore - a.finalScore; });
+
+          // Only show categories that have at least one score
+          var hasScores = reelAggregates.some(function(ra) { return ra.finalScore > 0; });
+          if (!hasScores) return;
+
+          html += '<div class="category-result-block">';
+          html += '<div class="category-result-title"><span class="cat-dot"></span>' + escapeHtml(cat) + '</div>';
+          html += '<table class="mini-leaderboard"><thead><tr>';
+          html += '<th>#</th><th>Contestant</th><th>Judge</th><th>Audience</th><th>Final</th>';
+          html += '</tr></thead><tbody>';
+
+          reelAggregates.forEach(function(ra, idx) {
+            if (ra.finalScore === 0) return;
+            var isWinner = idx === 0;
+            var rowClass = isWinner ? ' class="winner-row"' : '';
+            html += '<tr' + rowClass + '>';
+            html += '<td>' + ra.reel.number + '</td>';
+            html += '<td>' + escapeHtml(ra.reel.contestant);
+            if (isWinner) {
+              html += ' <span class="winner-badge">1st</span>';
+            }
+            html += '</td>';
+            html += '<td><span class="mini-score">' + ra.judgeAvg.toFixed(1) + '</span></td>';
+            html += '<td><span class="mini-score">' + ra.audienceAvg.toFixed(1) + '</span></td>';
+            html += '<td><span class="mini-score">' + ra.finalScore.toFixed(1) + '</span></td>';
+            html += '</tr>';
+          });
+
+          html += '</tbody></table></div>';
+        });
+
+        grid.innerHTML = html || '<div class="empty-state"><p>No results yet</p></div>';
+      }
+
+      // ---- Category Tab Setup ----
+      function setupTabs() {
+        document.querySelectorAll('.tab-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            currentCategory = btn.dataset.category;
+            renderAll();
+          });
+        });
+      }
+
+      // ---- Voter Type Filter ----
+      function setupFilter() {
+        document.getElementById('voterTypeFilter').addEventListener('change', function() {
+          currentVoterType = this.value;
+          renderAll();
+        });
+      }
+
+      // ---- Export CSV ----
+      function exportCSV() {
+        var headers = ['Timestamp', 'Voter Name', 'Type', 'Reel #', 'Contestant', 'Category', 'Score'];
+        var rows = currentVotes.map(function(v) {
+          var reel = aifilms.findReel(v.reel_id);
+          return [
+            v.created_at || '',
+            v.voter_name || 'Unknown',
+            v.voter_type || '',
+            reel ? reel.number : '',
+            reel ? reel.contestant : '',
+            v.category || (reel ? reel.category : ''),
+            v.score != null ? v.score : ''
+          ].map(function(field) {
+            // Escape CSV fields with commas or quotes
+            var str = String(field);
+            if (str.indexOf(',') >= 0 || str.indexOf('"') >= 0 || str.indexOf('\n') >= 0) {
+              return '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
+          }).join(',');
+        });
+
+        var csv = [headers.join(',')].concat(rows).join('\n');
+        var blob = new Blob([csv], { type: 'text/csv' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'isf-votes-' + new Date().toISOString().slice(0, 10) + '.csv';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      // ---- Utility ----
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      // ---- Boot ----
+      boot();
+    })();
+  </script>
+</body>
+</html>

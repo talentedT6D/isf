@@ -1,13 +1,13 @@
 /**
  * AIFilms Vote History Component
- * Shows user's voting history across all 50 reels
+ * Shows user's voting history across reels in the current category
  * Collapsible UI with voted/missed status
  */
 
 class VoteHistory {
-  constructor(voteStore, mockReels) {
+  constructor(voteStore, reels) {
     this.voteStore = voteStore;
-    this.mockReels = mockReels;
+    this.reels = reels;
     this.currentReelId = null;
     this.isExpanded = false;
     this.cachedHistory = null;
@@ -30,12 +30,12 @@ class VoteHistory {
     const history = [];
 
     // Find current reel index first
-    const currentIndex = this.mockReels.findIndex(r => r.id === this.currentReelId);
+    const currentIndex = this.reels.findIndex(r => r.id === this.currentReelId);
 
     // Only fetch votes for reels up to current (not all 50)
     const reelsToFetch = currentIndex >= 0
-      ? this.mockReels.slice(0, currentIndex + 1)
-      : this.mockReels;
+      ? this.reels.slice(0, currentIndex + 1)
+      : this.reels;
 
     // Batch fetch votes only for visible reels
     for (const reel of reelsToFetch) {

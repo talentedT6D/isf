@@ -223,6 +223,31 @@
       border-color: rgba(255, 255, 255, 0.25);
     }
 
+    /* Token input - monospace uppercase */
+    .token-input {
+      font-family: 'Courier New', Courier, monospace !important;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-size: 1.1rem !important;
+    }
+
+    /* Error message */
+    .error-message {
+      color: #f87171;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-align: center;
+      padding: 0.75rem;
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.25);
+      border-radius: 10px;
+      display: none;
+    }
+
+    .error-message.visible {
+      display: block;
+    }
+
     /* Submit Button */
     .submit-btn {
       width: 100%;
@@ -250,13 +275,19 @@
       height: 20px;
     }
 
-    .submit-btn:hover {
+    .submit-btn:hover:not(:disabled) {
       transform: translateY(-3px);
       box-shadow: 0 12px 35px rgba(255, 107, 149, 0.5);
     }
 
-    .submit-btn:active {
+    .submit-btn:active:not(:disabled) {
       transform: translateY(-1px);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
     }
 
     /* Back Link */
@@ -369,39 +400,31 @@
     <!-- Login Card -->
     <div class="login-card">
       <h1>Welcome, Judge</h1>
-      <p class="subtitle">Sign in to access the voting panel</p>
+      <p class="subtitle">Enter your token to access the voting panel</p>
 
       <form class="login-form" id="loginForm">
         <div class="form-group">
-          <label for="name">Name</label>
+          <label for="judgeToken">Enter Judge Token</label>
           <input
             type="text"
-            id="name"
-            name="name"
-            placeholder="Enter your name"
+            id="judgeToken"
+            name="judgeToken"
+            class="token-input"
+            placeholder="e.g. JUDGE-XXXX"
             required
-            autocomplete="name"
+            autocomplete="off"
+            spellcheck="false"
           >
         </div>
 
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            placeholder="Enter your password"
-            required
-            autocomplete="current-password"
-          >
-        </div>
+        <div class="error-message" id="errorMessage"></div>
 
-        <a href="judges-vote.html" class="submit-btn" id="submitBtn">
+        <button type="submit" class="submit-btn" id="submitBtn">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
           </svg>
-          Start Voting
-        </a>
+          Login as Judge
+        </button>
       </form>
 
       <a href="index.html" class="back-link">
@@ -418,38 +441,97 @@
     </div>
   </div>
 
+  <script src="sync.js"></script>
   <script>
-    // Optional: Add form validation and store judge name
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const name = document.getElementById('name').value.trim();
-      const password = document.getElementById('password').value;
+    (function() {
+      var aifilms = window.AIFilms;
+      var submitBtn = document.getElementById('submitBtn');
+      var errorMsg = document.getElementById('errorMessage');
+      var originalBtnHTML = submitBtn.innerHTML;
 
-      if (name && password) {
-        // Store judge name for use in voting page
-        localStorage.setItem('judgeName', name);
-        window.location.href = 'judges-vote.html';
+      function showError(message) {
+        errorMsg.textContent = message;
+        errorMsg.classList.add('visible');
       }
-    });
 
-    // Prevent default link behavior and use form submission
-    document.getElementById('submitBtn').addEventListener('click', function(e) {
-      const name = document.getElementById('name').value.trim();
-      const password = document.getElementById('password').value;
+      function hideError() {
+        errorMsg.classList.remove('visible');
+        errorMsg.textContent = '';
+      }
 
-      if (!name || !password) {
-        e.preventDefault();
-        // Highlight empty fields
-        if (!name) {
-          document.getElementById('name').focus();
-        } else if (!password) {
-          document.getElementById('password').focus();
+      function setLoading(loading) {
+        if (loading) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/></svg> Validating...';
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnHTML;
         }
-      } else {
-        // Store judge name for use in voting page
-        localStorage.setItem('judgeName', name);
       }
-    });
+
+      function handleSubmit(e) {
+        e.preventDefault();
+        hideError();
+
+        var token = document.getElementById('judgeToken').value.trim();
+        if (!token) {
+          showError('Please enter your judge token');
+          document.getElementById('judgeToken').focus();
+          return;
+        }
+
+        setLoading(true);
+
+        aifilms.tokenAuth.validateToken(aifilms.sync.getSupabase(), token)
+          .then(function(result) {
+            if (result.valid) {
+              var tokenData = result.tokenData;
+
+              if (tokenData.token_type !== 'judge') {
+                showError('This is not a judge token');
+                setLoading(false);
+                return;
+              }
+
+              // Store judge info in localStorage for judges-vote.html
+              localStorage.setItem('judgeToken', token.toUpperCase());
+              localStorage.setItem('judgeName', tokenData.person_name || '');
+              localStorage.setItem('judgeCategory', tokenData.category || '');
+
+              // Redirect to voting page
+              window.location.href = 'judges-vote.html';
+            } else {
+              showError(result.error || 'Invalid token');
+              setLoading(false);
+            }
+          })
+          .catch(function(err) {
+            console.error('Token validation error:', err);
+            showError('Validation failed. Please try again.');
+            setLoading(false);
+          });
+      }
+
+      function init() {
+        document.getElementById('loginForm').addEventListener('submit', handleSubmit);
+      }
+
+      // Wait for AIFilms to be ready (same pattern as other pages)
+      if (aifilms && aifilms.ready) {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        window.addEventListener('aifilms-ready', function() {
+          aifilms = window.AIFilms;
+          init();
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+          if (window.AIFilms && window.AIFilms.ready) {
+            aifilms = window.AIFilms;
+            init();
+          }
+        });
+      }
+    })();
   </script>
 </body>
 </html>

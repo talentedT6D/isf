@@ -878,6 +878,144 @@
       color: var(--text-muted);
     }
 
+    /* Category Filter */
+    .category-filter { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .cat-btn {
+      padding: 0.4rem 0.8rem;
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      background: var(--glass-dark-strong);
+      color: var(--text-medium);
+      font-size: 0.7rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .cat-btn:hover { border-color: var(--accent-pink); color: var(--text-light); }
+    .cat-btn.active {
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      color: white; border-color: transparent;
+    }
+
+    .category-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 107, 149, 0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 107, 149, 0.3);
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-pink);
+    }
+
+    /* Category Picker Overlay */
+    .category-picker-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2.5rem;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .category-picker-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.05);
+    }
+
+    .picker-header {
+      text-align: center;
+    }
+
+    .picker-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .picker-header p {
+      font-size: 1rem;
+      color: var(--text-medium);
+      font-weight: 400;
+    }
+
+    .picker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      max-width: 800px;
+      width: 90%;
+    }
+
+    .picker-card {
+      background: var(--glass-dark-strong);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .picker-card:hover {
+      border-color: var(--accent-pink);
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(255, 107, 149, 0.2);
+    }
+
+    .picker-card:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .picker-card-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-light);
+      margin-bottom: 0.4rem;
+    }
+
+    .picker-card-count {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .picker-loading {
+      text-align: center;
+      color: var(--text-medium);
+      font-size: 1rem;
+    }
+
+    .picker-loading .spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 3px solid var(--glass-border);
+      border-top-color: var(--accent-pink);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 0.75rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Layout starts hidden — revealed by JS after state is restored */
+    .layout {
+      opacity: 0;
+    }
+
     /* Focus states */
     .control-btn:focus-visible,
     .side-btn:focus-visible {
@@ -908,17 +1046,42 @@
   </style>
 </head>
 <body>
+  <!-- Category Picker Overlay -->
+  <div class="category-picker-overlay" id="categoryPicker">
+    <img src="ISF logos_2.png" alt="ISF Logo" style="width:80px;height:auto;opacity:0.9;">
+    <div class="picker-header">
+      <h1>Select Category</h1>
+      <p>Choose a category to start the show</p>
+    </div>
+    <div class="picker-grid" id="pickerGrid">
+      <div class="picker-loading">
+        <div class="spinner"></div>
+        <div>Loading categories...</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Instantly hide picker if resuming a session
+    if (localStorage.getItem('aifilms-control-category')) {
+      document.getElementById('categoryPicker').classList.add('hidden');
+    }
+  </script>
+
   <img src="ISF logos_2.png" alt="ISF Logo" class="logo-watermark">
 
   <!-- Floating blobs -->
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
 
-  <div class="layout">
+  <div class="layout" id="mainLayout">
     <main class="stage">
       <header class="stage-header">
         <div class="status-badges">
           <div class="paused-badge" id="pausedBadge">PAUSED</div>
+          <div class="category-badge" id="categoryBadge">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            <span id="categoryBadgeText">All Categories</span>
+          </div>
           <div class="connection-badge">
             <span class="connection-dot"></span>
             <span id="connectionText">Connected</span>
@@ -1072,6 +1235,17 @@
 
       <div class="sidebar-section">
         <div class="section-title">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+            <line x1="7" y1="7" x2="7.01" y2="7"/>
+          </svg>
+          Category
+        </div>
+        <div class="category-filter" id="categoryFilter"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
             <line x1="7" y1="2" x2="7" y2="22"/>
@@ -1091,13 +1265,19 @@
       var currentIndex = 0;
       var isPaused = false;
       var isAnimating = false;
+      var activeCategory = null;
+      var filteredReels = [];
 
       function init() {
-        var state = aifilms.sync.getState();
-        currentIndex = state.reelIndex || 0;
-
-        renderReelList();
-        updateDisplay(false);
+        // Check if a category was previously selected (survives refresh)
+        var savedCategory = localStorage.getItem('aifilms-control-category');
+        if (savedCategory && aifilms.categories.indexOf(savedCategory) !== -1) {
+          // Resume the saved category without showing picker
+          startCategory(savedCategory);
+        } else {
+          // Show category picker overlay
+          renderPickerCards();
+        }
 
         var baseUrl = window.location.href.replace('control.html', 'vote.html');
         document.getElementById('voteUrl').textContent = baseUrl;
@@ -1111,9 +1291,9 @@
         // Handle state sync requests from reconnecting clients
         aifilms.sync.on('state-request', function(payload) {
           console.log('Received state request from:', payload.requesterId);
-          var reel = aifilms.MOCK_REELS[currentIndex];
+          var reel = filteredReels[currentIndex];
+          if (!reel) return; // No category selected yet
           aifilms.sync.broadcast('state-sync', {
-            reelIndex: currentIndex,
             reelId: reel.id,
             reelNumber: reel.number,
             contestant: reel.contestant,
@@ -1179,6 +1359,127 @@
         setTimeout(function() { btn.classList.remove('clicked'); }, 600);
       }
 
+      function renderCategoryButtons() {
+        var container = document.getElementById('categoryFilter');
+        var html = '';
+        aifilms.categories.forEach(function(cat) {
+          html += '<button class="cat-btn" data-category="' + cat + '">' + cat + '</button>';
+        });
+        container.innerHTML = html;
+      }
+
+      function wireCategoryButtons() {
+        var catBtns = document.querySelectorAll('#categoryFilter .cat-btn');
+        catBtns.forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var cat = btn.dataset.category || null;
+            filterByCategory(cat);
+          });
+        });
+      }
+
+      function renderPickerCards() {
+        var grid = document.getElementById('pickerGrid');
+        var html = '';
+        aifilms.categories.forEach(function(cat) {
+          var count = aifilms.reels.filter(function(r) { return r.category === cat; }).length;
+          html += '<div class="picker-card" data-category="' + cat + '">' +
+            '<div class="picker-card-name">' + cat + '</div>' +
+            '<div class="picker-card-count">' + count + ' reel' + (count !== 1 ? 's' : '') + '</div>' +
+          '</div>';
+        });
+        grid.innerHTML = html;
+
+        grid.querySelectorAll('.picker-card').forEach(function(card) {
+          card.addEventListener('click', function() {
+            startCategory(card.dataset.category);
+          });
+        });
+      }
+
+      function startCategory(cat) {
+        // Hide the picker overlay
+        document.getElementById('categoryPicker').classList.add('hidden');
+
+        // Persist category so refresh resumes here
+        localStorage.setItem('aifilms-control-category', cat);
+
+        // Set the active category and filter reels
+        activeCategory = cat;
+        filteredReels = aifilms.reels.filter(function(r) { return r.category === cat; });
+
+        // Restore saved reel position within this category, or start at 0
+        var savedIndex = parseInt(localStorage.getItem('aifilms-control-index') || '0', 10);
+        currentIndex = (savedIndex >= 0 && savedIndex < filteredReels.length) ? savedIndex : 0;
+        console.log('Restoring reel position:', currentIndex, 'of', filteredReels.length, '(saved:', savedIndex, ')');
+
+        // Generate sidebar category buttons and set the active one
+        renderCategoryButtons();
+        wireCategoryButtons();
+
+        // Set the clicked category as active in sidebar
+        var catBtns = document.querySelectorAll('#categoryFilter .cat-btn');
+        catBtns.forEach(function(btn) {
+          var btnCat = btn.dataset.category || null;
+          if (btnCat === cat) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+
+        // Update category badge
+        document.getElementById('categoryBadgeText').textContent = 'Category: ' + cat;
+
+        renderReelList();
+        updateDisplay(false);
+
+        // Reveal the layout now that correct reel is displayed
+        document.getElementById('mainLayout').style.opacity = '1';
+
+        // Broadcast the category selection so judges know which category is active
+        aifilms.sync.broadcast('category-change', {
+          category: cat,
+          syncTimestamp: Date.now()
+        });
+      }
+
+      function filterByCategory(cat) {
+        if (!cat) return; // Must select a category
+        activeCategory = cat;
+        localStorage.setItem('aifilms-control-category', cat);
+        filteredReels = aifilms.reels.filter(function(r) {
+          return r.category === cat;
+        });
+
+        // Update active button styling
+        var catBtns = document.querySelectorAll('#categoryFilter .cat-btn');
+        catBtns.forEach(function(btn) {
+          var btnCat = btn.dataset.category || null;
+          if (btnCat === cat) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+
+        // Reset index into filtered set
+        currentIndex = 0;
+        localStorage.setItem('aifilms-control-index', '0');
+
+        // Update category badge in header
+        document.getElementById('categoryBadgeText').textContent = 'Category: ' + cat;
+
+        updateDisplay(false);
+        renderReelList();
+
+        // Broadcast category change so judges know
+        aifilms.sync.broadcast('category-change', {
+          category: cat,
+          syncTimestamp: Date.now()
+        });
+      }
+
       function updatePauseButtonClass(paused) {
         var pauseBtn = document.getElementById('pauseBtn');
         if (paused) {
@@ -1196,7 +1497,7 @@
 
       function renderReelList() {
         var list = document.getElementById('reelList');
-        list.innerHTML = aifilms.MOCK_REELS.map(function(reel, index) {
+        list.innerHTML = filteredReels.map(function(reel, index) {
           return '<div class="reel-item ' + (index === currentIndex ? 'active' : '') + '" data-index="' + index + '">' +
             '<div class="reel-number">' + reel.number + '</div>' +
             '<div class="reel-info">' +
@@ -1214,7 +1515,13 @@
       }
 
       function updateDisplay(animate, direction) {
-        var reel = aifilms.MOCK_REELS[currentIndex];
+        var reel = filteredReels[currentIndex];
+        if (!reel) return;
+
+        // Persist reel position for crash/refresh recovery
+        localStorage.setItem('aifilms-control-index', String(currentIndex));
+        console.log('Saved reel position:', currentIndex);
+
         var card = document.getElementById('currentCard');
 
         if (animate && !isAnimating) {
@@ -1244,7 +1551,6 @@
         updateStats();
 
         aifilms.sync.broadcast('reel-change', {
-          reelIndex: currentIndex,
           reelId: reel.id,
           reelNumber: reel.number,
           contestant: reel.contestant,
@@ -1256,7 +1562,7 @@
       }
 
       function setReelContent(reel) {
-        document.getElementById('reelNumber').textContent = '#' + reel.number + ' of ' + aifilms.MOCK_REELS.length;
+        document.getElementById('reelNumber').textContent = '#' + reel.number + ' of ' + filteredReels.length;
         document.getElementById('contestantName').textContent = reel.contestant;
         document.getElementById('category').textContent = reel.category;
 
@@ -1275,7 +1581,8 @@
       }
 
       function updateStats() {
-        var reel = aifilms.MOCK_REELS[currentIndex];
+        var reel = filteredReels[currentIndex];
+        if (!reel) return; // No category selected yet
         var stats = aifilms.voteStore.getReelStats(reel.id);
 
         document.getElementById('audienceVotes').textContent = stats.audienceCount;
@@ -1286,7 +1593,7 @@
 
       function nextReel() {
         if (isAnimating) return;
-        if (currentIndex < aifilms.MOCK_REELS.length - 1) {
+        if (currentIndex < filteredReels.length - 1) {
           currentIndex++;
           updateDisplay(true, 'next');
         }
@@ -1359,9 +1666,8 @@
         updatePauseButtonClass(isPaused);
 
         // Broadcast pause state
-        var reel = aifilms.MOCK_REELS[currentIndex];
+        var reel = filteredReels[currentIndex];
         aifilms.sync.broadcast('reel-change', {
-          reelIndex: currentIndex,
           reelId: reel.id,
           status: isPaused ? 'paused' : 'playing',
           syncTimestamp: Date.now()
@@ -1384,11 +1690,12 @@
 
       function safeInit() {
         if (initialized) return;
-        if (!window.AIFilms) return;
+        if (!window.AIFilms || !window.AIFilms.ready) return;
 
         aifilms = window.AIFilms;
+        filteredReels = aifilms.reels;
         initialized = true;
-        console.log('Control panel initialized');
+        console.log('Control panel initialized with', aifilms.reels.length, 'reels');
         init();
       }
 

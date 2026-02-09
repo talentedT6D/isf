@@ -222,6 +222,21 @@
       letter-spacing: 0.05em;
     }
 
+    /* Category Tabs */
+    .category-tabs { display: flex; gap: 0.5rem; padding: 0 1.5rem; margin-bottom: 1.5rem; overflow-x: auto; }
+    .category-tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      padding: 0.5rem 1.2rem; border: 1px solid var(--glass-border);
+      border-radius: 100px; background: var(--glass-dark-strong);
+      color: var(--text-medium); font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+    }
+    .tab-btn:hover { border-color: var(--accent-pink); color: var(--text-light); }
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%);
+      color: white; border-color: transparent;
+    }
+
     /* Leaderboard */
     .leaderboard {
       background: var(--glass-dark);
@@ -464,6 +479,8 @@
       .contestant-avatar { width: 40px; height: 40px; }
       .contestant-avatar svg { width: 20px; height: 20px; }
       .contestant-name { font-size: 0.9rem; }
+
+      .category-tabs { padding: 0 1rem; }
     }
   </style>
 </head>
@@ -505,6 +522,8 @@
       </div>
     </div>
 
+    <div class="category-tabs" id="categoryTabs"></div>
+
     <div class="leaderboard">
       <div class="leaderboard-header">
         <span>Rank</span>
@@ -535,8 +554,20 @@
   <script>
     (function() {
       var aifilms = window.AIFilms;
+      var activeCategory = null;
+
+      function renderTabs() {
+        var container = document.getElementById('categoryTabs');
+        var html = '<button class="tab-btn active" data-category="">All</button>';
+        aifilms.categories.forEach(function(cat) {
+          html += '<button class="tab-btn" data-category="' + cat + '">' + cat + '</button>';
+        });
+        container.innerHTML = html;
+      }
 
       function init() {
+        renderTabs();
+        setupCategoryTabs();
         updateLeaderboard();
         setInterval(updateLeaderboard, 2000);
 
@@ -545,8 +576,40 @@
         });
       }
 
+      function setupCategoryTabs() {
+        var tabs = document.getElementById('categoryTabs');
+        var buttons = tabs.querySelectorAll('.tab-btn');
+
+        buttons.forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            // Remove active from all
+            buttons.forEach(function(b) { b.classList.remove('active'); });
+            // Set active on clicked
+            btn.classList.add('active');
+            // Update active category (empty string means All / null)
+            var cat = btn.getAttribute('data-category');
+            activeCategory = cat === '' ? null : cat;
+            // Refresh leaderboard immediately
+            updateLeaderboard();
+          });
+        });
+      }
+
       function updateLeaderboard() {
-        var allStats = aifilms.voteStore.getAllStats();
+        var allStats = aifilms.voteStore.getAllStats(activeCategory);
+
+        // getAllStats returns a Promise for the Supabase store
+        if (allStats && typeof allStats.then === 'function') {
+          allStats.then(function(stats) {
+            renderLeaderboard(stats);
+          });
+        } else {
+          renderLeaderboard(allStats);
+        }
+      }
+
+      function renderLeaderboard(allStats) {
+        if (!allStats) allStats = [];
 
         var totalVotes = 0;
         var judgeVotes = 0;
@@ -619,7 +682,7 @@
       } else {
         window.addEventListener('aifilms-ready', init);
         document.addEventListener('DOMContentLoaded', function() {
-          if (window.AIFilms) {
+          if (window.AIFilms && window.AIFilms.ready) {
             aifilms = window.AIFilms;
             init();
           }

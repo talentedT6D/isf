@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="auth-google.css">
+  <link rel="stylesheet" href="vote-history.css">
   <style>
     :root {
       --glass-dark: rgba(255, 255, 255, 0.08);
@@ -539,6 +541,165 @@
       color: white;
     }
 
+    /* Token overlay */
+    .token-overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(10, 10, 15, 0.97) 0%, rgba(26, 26, 46, 0.97) 100%);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 2rem;
+    }
+
+    .token-overlay .token-card {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 28px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .token-overlay .token-card::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -30%;
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.15) 0%, rgba(255, 140, 66, 0.1) 100%);
+      border-radius: 50%;
+      filter: blur(40px);
+      pointer-events: none;
+    }
+
+    .token-overlay .token-card::after {
+      content: '';
+      position: absolute;
+      bottom: -30%;
+      left: -20%;
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+      border-radius: 50%;
+      filter: blur(30px);
+      pointer-events: none;
+    }
+
+    .token-overlay .token-logo {
+      width: 70px;
+      height: auto;
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .token-overlay h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-light);
+      margin-bottom: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .token-overlay .token-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .token-overlay .token-input {
+      width: 100%;
+      padding: 1rem 1.25rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      outline: none;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .token-overlay .token-input::placeholder {
+      color: var(--text-muted);
+      text-transform: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 400;
+      letter-spacing: normal;
+    }
+
+    .token-overlay .token-input:focus {
+      border-color: rgba(255, 107, 149, 0.5);
+      box-shadow: 0 0 0 3px rgba(255, 107, 149, 0.15);
+    }
+
+    .token-overlay .token-submit-btn {
+      width: 100%;
+      padding: 1rem;
+      margin-top: 1.25rem;
+      background: linear-gradient(135deg, #FF6B95 0%, #FF8C42 100%);
+      border: none;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(255, 107, 149, 0.35);
+      position: relative;
+      z-index: 1;
+    }
+
+    .token-overlay .token-submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(255, 107, 149, 0.45);
+    }
+
+    .token-overlay .token-submit-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .token-overlay .token-submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .token-overlay .token-error {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: rgba(248, 113, 113, 0.12);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #f87171;
+      display: none;
+      position: relative;
+      z-index: 1;
+    }
+
     /* Focus states for accessibility */
     .quick-btn:focus-visible,
     .submit-btn:focus-visible {
@@ -706,10 +867,6 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="vote-history.css?v=4">
-  <link rel="stylesheet" href="auth-google.css?v=3">
-  <script src="vote-history.js?v=6"></script>
-  <script src="auth-google.js?v=3"></script>
 </head>
 <body>
   <!-- Logo -->
@@ -720,23 +877,6 @@
     <span class="connection-indicator" id="connectionIndicator"></span>
     <span id="reelCounter">Reel 1 of 10</span>
   </div>
-
-  <!-- Auth Button -->
-  <button id="authBtn" style="
-    position: fixed;
-    top: 4.5rem;
-    right: 1.5rem;
-    padding: 0.5rem 1rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 100px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: white;
-    cursor: pointer;
-    z-index: 1000;
-    transition: all 0.2s;
-  ">Sign In</button>
 
   <!-- Floating blobs -->
   <div class="blob blob-1"></div>
@@ -809,12 +949,27 @@
         Submit Vote
       </button>
 
-      <!-- Vote History Section -->
       <div id="voteHistoryContainer"></div>
     </main>
   </div>
 
-  <script src="sync.js?v=3"></script>
+  <!-- Token Entry Overlay -->
+  <div class="token-overlay" id="tokenOverlay" style="display: none;">
+    <div class="token-card">
+      <img src="ISF%20logos_2.png" alt="ISF Logo" class="token-logo" onerror="this.style.display='none'">
+      <h2>Enter Your Voting Token</h2>
+      <p class="token-subtitle">Enter the token provided to you to unlock voting</p>
+      <form id="tokenForm">
+        <input type="text" class="token-input" id="tokenInput" placeholder="Enter token" autocomplete="off" autocapitalize="characters" spellcheck="false" required>
+        <button type="submit" class="token-submit-btn" id="tokenSubmitBtn">Unlock Voting</button>
+        <div class="token-error" id="tokenError"></div>
+      </form>
+    </div>
+  </div>
+
+  <script src="sync.js"></script>
+  <script src="auth-google.js"></script>
+  <script src="vote-history.js"></script>
   <script>
     (function() {
       var aifilms = window.AIFilms;
@@ -846,7 +1001,7 @@
           display.classList.remove('bump');
         }, 200);
 
-        if (navigator.vibrate) navigator.vibrate(10);
+        try { navigator.vibrate(10); } catch(e) {}
       }
 
       function setupQuickSelect() {
@@ -877,12 +1032,13 @@
 
         // Check if control panel has broadcasted state
         var state = aifilms.sync.getState();
-        var hasControlPanelState = state.reelIndex !== undefined && state.syncTimestamp;
+        var hasControlPanelState = state.reelId !== undefined && state.syncTimestamp;
 
         if (hasControlPanelState) {
           // Control panel is active, show current reel
-          console.log('Control panel detected, showing reel', state.reelIndex);
-          showReel(aifilms.MOCK_REELS[state.reelIndex]);
+          console.log('Control panel detected, showing reel', state.reelId);
+          var reel = aifilms.findReel(state.reelId);
+          if (reel) showReel(reel);
         } else {
           // No control panel activity yet, keep waiting overlay visible
           console.log('No control panel activity, showing waiting overlay');
@@ -890,21 +1046,15 @@
 
         aifilms.sync.on('reel-change', function(data) {
           console.log('Received reel-change event:', data);
-          var reel = aifilms.MOCK_REELS[data.reelIndex];
-          showReel(reel);
-
-          // Update vote history
-          if (window.voteHistory) {
-            window.voteHistory.setCurrentReel(reel.id);
-            setTimeout(function() { window.voteHistory.refresh(); }, 500);
-          }
+          var reel = aifilms.findReel(data.reelId);
+          if (reel) showReel(reel);
         });
 
         // Handle state sync from control panel (on reconnect)
         aifilms.sync.on('state-sync', function(data) {
-          console.log('Received state sync, syncing to reel', data.reelIndex);
-          var reel = aifilms.MOCK_REELS[data.reelIndex];
-          showReel(reel);
+          console.log('Received state sync, syncing to reel', data.reelId);
+          var reel = aifilms.findReel(data.reelId);
+          if (reel) showReel(reel);
         });
 
         // Connection state monitoring
@@ -930,51 +1080,54 @@
 
         document.getElementById('submitBtn').addEventListener('click', submitVote);
 
-        // Initialize vote history
-        window.voteHistory = new VoteHistory(aifilms.voteStore, aifilms.MOCK_REELS);
-
-        // Render on page load
-        if (aifilms.ready) {
-          window.voteHistory.render('voteHistoryContainer');
-        } else {
-          window.addEventListener('aifilms-ready', function() {
-            window.voteHistory.render('voteHistoryContainer');
-          });
-        }
-
-        // Initialize Google authentication (MANDATORY)
-        if (aifilms.sync && aifilms.sync.getSupabase) {
-          aifilms.sync.on('connected', async function() {
-            const authManager = new GoogleAuthManager(
-              aifilms.sync.getSupabase(),
-              aifilms.deviceManager
-            );
-            const isAuthenticated = await authManager.init();
-
-            // Store in both places for compatibility
-            window.AIFilms.auth = authManager;
-            aifilms.auth = authManager;
-
-            console.log('🔐 Google Auth initialized, authenticated:', isAuthenticated);
-            console.log('🔐 Auth stored at window.AIFilms.auth:', window.AIFilms.auth);
-
-            // Ensure UI updates after a short delay (DOM might not be ready)
-            setTimeout(() => authManager.updateUI(), 100);
-            setTimeout(() => authManager.updateUI(), 500);
-
-            if (isAuthenticated) {
-              // Verify voter setup in database
-              const isVerified = await authManager.verifySetup();
-              if (isVerified) {
-                console.log('✅ Voter setup verified - ready to vote!');
-              } else {
-                console.error('❌ Voter setup verification failed!');
-              }
-            } else {
-              console.log('⚠️ User not authenticated - showing login screen');
+        // Initialize Google OAuth (primary auth) - guard in case script failed to load
+        if (typeof GoogleAuthManager !== 'undefined') {
+          window.AIFilms.auth = new GoogleAuthManager(
+            aifilms.sync.getSupabase(),
+            aifilms.deviceManager
+          );
+          window.AIFilms.auth.init().then(function(authenticated) {
+            if (authenticated) {
+              console.log('Google auth OK - hiding token overlay');
+              document.getElementById('tokenOverlay').style.display = 'none';
+            } else if (!aifilms.tokenAuth.isAuthenticated()) {
+              document.getElementById('tokenOverlay').style.display = 'flex';
             }
           });
+        } else if (!aifilms.tokenAuth.isAuthenticated()) {
+          // No Google auth available, fall back to token auth
+          document.getElementById('tokenOverlay').style.display = 'flex';
         }
+
+        // Token form submit (fallback auth)
+        document.getElementById('tokenForm').addEventListener('submit', async function(e) {
+          e.preventDefault();
+          var tokenInput = document.getElementById('tokenInput');
+          var errorDiv = document.getElementById('tokenError');
+          var submitBtn = document.getElementById('tokenSubmitBtn');
+
+          errorDiv.style.display = 'none';
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Validating...';
+
+          var result = await aifilms.tokenAuth.validateToken(
+            aifilms.sync.getSupabase(),
+            tokenInput.value
+          );
+
+          if (result.valid) {
+            document.getElementById('tokenOverlay').style.display = 'none';
+          } else {
+            errorDiv.textContent = result.error || 'Invalid token';
+            errorDiv.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Unlock Voting';
+          }
+        });
+
+        // Initialize Vote History
+        window.voteHistory = new VoteHistory(aifilms.voteStore, aifilms.reels);
+        window.voteHistory.render('voteHistoryContainer');
       }
 
       async function showReel(reel) {
@@ -999,23 +1152,25 @@
         currentReel = reel;
         hasVoted = false;
 
-        // Update vote history with current reel
-        if (window.voteHistory) {
-          window.voteHistory.setCurrentReel(reel.id);
-        }
-
         // CRITICAL: Hide overlays FIRST
         document.getElementById('successOverlay').classList.remove('active');
         document.getElementById('waitingOverlay').classList.remove('active');
 
         // Update UI synchronously
-        document.getElementById('reelCounter').textContent = 'Reel ' + reel.number + ' of ' + aifilms.MOCK_REELS.length;
+        var catReels = aifilms.reels.filter(function(r) { return r.category === reel.category; });
+        document.getElementById('reelCounter').textContent = 'Reel ' + reel.number + ' of ' + catReels.length;
         document.getElementById('contestantName').textContent = reel.contestant;
         document.getElementById('category').textContent = reel.category;
 
         currentScore = 50;
         setSliderValue(50);
         updateScore(50);
+
+        // Update vote history
+        if (window.voteHistory) {
+          window.voteHistory.setCurrentReel(reel.id);
+          window.voteHistory.render('voteHistoryContainer');
+        }
 
         // Check existing vote in background (NON-BLOCKING)
         checkExistingVoteAsync(reel, thisOperation);
@@ -1070,59 +1225,58 @@
           if (pendingReelChange === operation) {
             pendingReelChange = null;
           }
-
-          // Refresh vote history after vote check completes
-          if (window.voteHistory && currentReel && currentReel.id === reel.id) {
-            window.voteHistory.refresh();
-          }
         }
       }
 
       async function submitVote() {
-        // Check authentication first (check both locations)
-        const auth = window.AIFilms.auth || aifilms.auth;
-
-        if (!auth) {
-          console.error('❌ Vote blocked: Auth manager not initialized');
-          alert('Please wait for authentication to complete');
-          return;
-        }
-
-        if (!auth.canVote()) {
-          console.error('❌ Vote blocked: User not authenticated or voter ID missing');
-          alert('Please sign in with Google to vote');
+        var googleAuthed = window.AIFilms.auth && window.AIFilms.auth.isAuthenticated;
+        var tokenAuthed = aifilms.tokenAuth.isAuthenticated();
+        if (!googleAuthed && !tokenAuthed) {
+          document.getElementById('tokenOverlay').style.display = 'flex';
           return;
         }
 
         if (!currentReel) {
-          console.warn('❌ Cannot submit vote: no current reel');
+          console.warn('Cannot submit vote: no current reel');
           return;
         }
 
         // Prevent double-submission
         if (hasVoted) {
-          console.log('⚠️ Vote already submitted for', currentReel.id);
+          console.log('Vote already submitted for', currentReel.id);
           return;
         }
 
-        console.log('📊 Submitting vote:', {
+        console.log('Submitting vote:', {
           reel: currentReel.id,
           contestant: currentReel.contestant,
-          score: currentScore,
-          voterId: window.AIFilms.deviceManager.getVoterId()
+          score: currentScore
         });
 
         try {
           // Save vote to database
-          const result = await aifilms.voteStore.saveVote(currentReel.id, currentScore, 'audience');
+          // Get voter name from either auth source
+          var voterName = aifilms.tokenAuth.getPersonName();
+          if (!voterName && window.AIFilms.auth && window.AIFilms.auth.getUser()) {
+            var user = window.AIFilms.auth.getUser();
+            voterName = user.user_metadata?.full_name || user.email || 'Audience';
+          }
+
+          const result = await aifilms.voteStore.saveVote(
+            currentReel.id,
+            currentScore,
+            'audience',
+            voterName,
+            currentReel.category
+          );
 
           if (!result) {
-            console.error('❌ Vote save failed - no result returned');
+            console.error('Vote save failed - no result returned');
             alert('Failed to save vote. Please try again.');
             return;
           }
 
-          console.log('✅ Vote saved successfully:', result);
+          console.log('Vote saved successfully:', result);
 
           // Broadcast vote for real-time updates
           aifilms.sync.broadcast('vote', {
@@ -1139,13 +1293,11 @@
 
           if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
 
-          // Refresh vote history after voting
-          if (window.voteHistory) {
-            setTimeout(function() { window.voteHistory.refresh(); }, 1000);
-          }
+          // Refresh vote history
+          if (window.voteHistory) window.voteHistory.refresh();
 
         } catch (error) {
-          console.error('❌ Vote submission error:', error);
+          console.error('Vote submission error:', error);
           alert('Failed to submit vote. Please check your connection and try again.');
         }
       }
@@ -1155,7 +1307,7 @@
       } else {
         window.addEventListener('aifilms-ready', init);
         document.addEventListener('DOMContentLoaded', function() {
-          if (window.AIFilms) {
+          if (window.AIFilms && window.AIFilms.ready) {
             aifilms = window.AIFilms;
             init();
           }

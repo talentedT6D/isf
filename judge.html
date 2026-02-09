@@ -859,12 +859,15 @@
       function init() {
         // Check if control panel has broadcasted state
         var state = aifilms.sync.getState();
-        var hasControlPanelState = state.reelIndex !== undefined && state.syncTimestamp;
+        var hasControlPanelState = state.reelId && state.syncTimestamp;
 
         if (hasControlPanelState) {
           // Control panel is active, show current reel
-          console.log('Control panel detected, showing reel', state.reelIndex);
-          showReel(aifilms.MOCK_REELS[state.reelIndex]);
+          var reel = aifilms.findReel(state.reelId);
+          console.log('Control panel detected, showing reel', state.reelId);
+          if (reel) {
+            showReel(reel);
+          }
         } else {
           // No control panel activity yet, keep waiting overlay visible
           console.log('No control panel activity, showing waiting overlay');
@@ -872,15 +875,19 @@
 
         aifilms.sync.on('reel-change', function(data) {
           console.log('Received reel-change event:', data);
-          var reel = aifilms.MOCK_REELS[data.reelIndex];
-          showReel(reel);
+          var reel = aifilms.findReel(data.reelId);
+          if (reel) {
+            showReel(reel);
+          }
         });
 
         // Handle state sync from control panel (on reconnect)
         aifilms.sync.on('state-sync', function(data) {
-          console.log('Received state sync, syncing to reel', data.reelIndex);
-          var reel = aifilms.MOCK_REELS[data.reelIndex];
-          showReel(reel);
+          console.log('Received state sync, syncing to reel', data.reelId);
+          var reel = aifilms.findReel(data.reelId);
+          if (reel) {
+            showReel(reel);
+          }
         });
 
         // Connection state monitoring
@@ -937,7 +944,8 @@
         document.getElementById('waitingOverlay').classList.remove('active');
 
         // Update UI synchronously
-        document.getElementById('reelNumber').textContent = 'Reel ' + reel.number + ' of ' + aifilms.MOCK_REELS.length;
+        var catReels = aifilms.reels.filter(function(r) { return r.category === reel.category; });
+        document.getElementById('reelNumber').textContent = 'Reel ' + reel.number + ' of ' + catReels.length;
         document.getElementById('contestantName').textContent = reel.contestant;
         document.getElementById('category').textContent = reel.category;
 
@@ -1072,7 +1080,7 @@
       } else {
         window.addEventListener('aifilms-ready', init);
         document.addEventListener('DOMContentLoaded', function() {
-          if (window.AIFilms) {
+          if (window.AIFilms && window.AIFilms.ready) {
             aifilms = window.AIFilms;
             init();
           }

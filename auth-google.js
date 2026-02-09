@@ -88,7 +88,7 @@ class GoogleAuthManager {
         .from('voters')
         .select('email, auth_user_id')
         .eq('id', voterId)
-        .single();
+        .maybeSingle();
 
       if (existingVoter?.email === user.email) {
         console.log('✅ Email already linked - skipping update');
@@ -110,11 +110,7 @@ class GoogleAuthManager {
         .single();
 
       if (linkResult.error) {
-        console.error('❌ Email linking failed:', linkResult.error);
-        // Don't throw - email conflict is OK, continue anyway
-        console.log('⚠️ Continuing despite email link error...');
-      } else {
-        console.log('✅ User linked to device successfully:', linkResult.data);
+        // Email conflict is OK (already linked) - silently continue
       }
 
       console.log('✅ Authentication complete - ready to vote!');
@@ -131,7 +127,7 @@ class GoogleAuthManager {
       const { data, error } = await this.supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'https://isfreels.vercel.app/vote.html',
+          redirectTo: window.location.origin + '/vote.html',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
@@ -217,10 +213,7 @@ class GoogleAuthManager {
 
   updateUI() {
     const btn = document.getElementById('authBtn');
-    if (!btn) {
-      console.warn('⚠️ Auth button not found in DOM');
-      return;
-    }
+    if (!btn) return;
 
     if (this.currentUser) {
       // Hide the button completely after login - it's not needed

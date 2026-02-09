@@ -14,67 +14,48 @@ const SYNC_MODE = 'supabase';
 const SUPABASE_URL = 'https://rtnsbmoatuocymrsdorj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0bnNibW9hdHVvY3ltcnNkb3JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjA5NzQsImV4cCI6MjA4MzQzNjk3NH0.-uKLv5sBlUWB19LmA_UH5eMPenkmD1xsIBP43i0BK8U';
 
-// R2 Video CDN - Old bucket (first 10 reels)
-const R2_BASE = 'https://pub-80916ecd31064b1bb21b62cf3490e8a3.r2.dev';
-// New bucket (additional reels)
-const R2_BASE_NEW = 'https://pub-cfac2a567df745d9869da856f2b8f976.r2.dev';
+// ============================================
+// FETCH REELS FROM DATABASE
+// ============================================
 
-// Reel data - 50 total reels
-const MOCK_REELS = [
-  // Original 10 reels from old bucket
-  { id: 'reel-1', number: 1, contestant: 'Arjun Mehta', category: 'Dance', duration: 45, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-01.mp4` },
-  { id: 'reel-2', number: 2, contestant: 'Priya Sharma', category: 'Comedy', duration: 30, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-02.mp4` },
-  { id: 'reel-3', number: 3, contestant: 'Rahul Verma', category: 'Music', duration: 60, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-03.mp4` },
-  { id: 'reel-4', number: 4, contestant: 'Ananya Patel', category: 'Dance', duration: 40, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-04.mp4` },
-  { id: 'reel-5', number: 5, contestant: 'Vikram Singh', category: 'Drama', duration: 55, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-05.mp4` },
-  { id: 'reel-6', number: 6, contestant: 'Neha Gupta', category: 'Comedy', duration: 35, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-06.mp4` },
-  { id: 'reel-7', number: 7, contestant: 'Aditya Kumar', category: 'Music', duration: 50, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-07.mp4` },
-  { id: 'reel-8', number: 8, contestant: 'Kavya Nair', category: 'Dance', duration: 45, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-08.mp4` },
-  { id: 'reel-9', number: 9, contestant: 'Rohan Joshi', category: 'Comedy', duration: 40, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-09.mp4` },
-  { id: 'reel-10', number: 10, contestant: 'Simran Kaur', category: 'Drama', duration: 60, thumbnail: 'user', videoUrl: `${R2_BASE}/reel-10.mp4` },
+async function fetchReels(supabase) {
+  try {
+    const { data, error } = await supabase
+      .from('reels')
+      .select('*')
+      .eq('is_active', true)
+      .order('category')
+      .order('reel_number');
 
-  // 40 new reels from new bucket (actual video paths from R2)
-  { id: 'reel-11', number: 11, contestant: 'Ishaan Reddy', category: 'Music', duration: 48, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/001483eaa7f043918ffe4811cb34245a/1080p-wm-video-CL.mp4` },
-  { id: 'reel-12', number: 12, contestant: 'Zara Khan', category: 'Dance', duration: 42, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/001a4bfaa99e461f921130cc8b00fcae/1080p-wm-video-CL.mp4` },
-  { id: 'reel-13', number: 13, contestant: 'Dev Malhotra', category: 'Comedy', duration: 35, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/002807868ae9477af1532f96e9cabe2e/1080p-wm-video-CL.mp4` },
-  { id: 'reel-14', number: 14, contestant: 'Meera Iyer', category: 'Drama', duration: 52, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/002f141e0cd2430fbd2a68aec2a3f6cf/1080p-wm-video-CL.mp4` },
-  { id: 'reel-15', number: 15, contestant: 'Karan Bhatia', category: 'Music', duration: 55, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00343c0b15f64f6ea0b60bb19171c6da/1080p-wm-video-CL.mp4` },
-  { id: 'reel-16', number: 16, contestant: 'Aarti Desai', category: 'Dance', duration: 44, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/0037ff833b244a698c3a934360ff9435/1080p-wm-video-CL.mp4` },
-  { id: 'reel-17', number: 17, contestant: 'Siddharth Roy', category: 'Comedy', duration: 38, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/003b80d47ac243339ecf06f16ce83873/1080p-wm-video-CL.mp4` },
-  { id: 'reel-18', number: 18, contestant: 'Riya Pillai', category: 'Drama', duration: 50, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/003de8ff03fa49c9bb1134a624550611/1080p-wm-video-CL.mp4` },
-  { id: 'reel-19', number: 19, contestant: 'Aryan Chopra', category: 'Music', duration: 46, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00478621458e450dad378a7fff31caab/1080p-wm-video-CL.mp4` },
-  { id: 'reel-20', number: 20, contestant: 'Diya Menon', category: 'Dance', duration: 43, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00515a748d9e4187ad90a1f40a607612/1080p-wm-video-CL.mp4` },
-  { id: 'reel-21', number: 21, contestant: 'Tanvi Agarwal', category: 'Comedy', duration: 32, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/005ac45866c44ec3ce03f35459838ca2/1080p-wm-video-CL.mp4` },
-  { id: 'reel-22', number: 22, contestant: 'Nikhil Shetty', category: 'Drama', duration: 58, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/005de4c65053498ba2c366f21cdd4fb8/1080p-wm-video-CL.mp4` },
-  { id: 'reel-23', number: 23, contestant: 'Pooja Bajaj', category: 'Music', duration: 51, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/0060066fef9c4a33a80446e7a35d156e/1080p-wm-video-CL.mp4` },
-  { id: 'reel-24', number: 24, contestant: 'Yash Thakur', category: 'Dance', duration: 47, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00650abe434647bfa7d9037d94d728fb/1080p-wm-video-CL.mp4` },
-  { id: 'reel-25', number: 25, contestant: 'Sneha Rao', category: 'Comedy', duration: 36, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/0065538c460d465d932c479932ead525/1080p-wm-video-CL.mp4` },
-  { id: 'reel-26', number: 26, contestant: 'Kabir Ahuja', category: 'Drama', duration: 54, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/0065da11911a446e9eaab2f71f38efa3/1080p-wm-video-CL.mp4` },
-  { id: 'reel-27', number: 27, contestant: 'Naina Sen', category: 'Music', duration: 49, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/0067f57b831246cf8002f40314ebb527/1080p-wm-video-CL.mp4` },
-  { id: 'reel-28', number: 28, contestant: 'Vihaan Saxena', category: 'Dance', duration: 41, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/006e7c46d8ae4a6284333113aa3f9823/1080p-wm-video-CL.mp4` },
-  { id: 'reel-29', number: 29, contestant: 'Isha Tiwari', category: 'Comedy', duration: 34, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/0070b656be6f47e8eb89bc7b8b5fea6e/1080p-wm-video-CL.mp4` },
-  { id: 'reel-30', number: 30, contestant: 'Arnav Kulkarni', category: 'Drama', duration: 56, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/0071d27658784e12857a8a32d8e1e959/1080p-wm-video-CL.mp4` },
-  { id: 'reel-31', number: 31, contestant: 'Tara Jain', category: 'Music', duration: 53, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/007365495ab840a7bf8806969174c980/1080p-wm-video-CL.mp4` },
-  { id: 'reel-32', number: 32, contestant: 'Reyansh Ghosh', category: 'Dance', duration: 45, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/0074162915384a35b8260e4e04e4f62c/1080p-wm-video-CL.mp4` },
-  { id: 'reel-33', number: 33, contestant: 'Aanya Banerjee', category: 'Comedy', duration: 37, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/0077de67385f4b439331815d3c919512/1080p-wm-video-CL.mp4` },
-  { id: 'reel-34', number: 34, contestant: 'Shaurya Mishra', category: 'Drama', duration: 59, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/0077ea9d7ca3424cd84f8ed62b1e4246/1080p-wm-video-CL.mp4` },
-  { id: 'reel-35', number: 35, contestant: 'Kiara Das', category: 'Music', duration: 48, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/007989c13d6d4e8eba0596a9ce88007b/1080p-wm-video-CL.mp4` },
-  { id: 'reel-36', number: 36, contestant: 'Advait Pandey', category: 'Dance', duration: 46, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00799d10c272491386d0afcd12e9fecb/1080p-wm-video-CL.mp4` },
-  { id: 'reel-37', number: 37, contestant: 'Sara Mathur', category: 'Comedy', duration: 33, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/007d7e129cd944cda14a32c825f797fb/1080p-wm-video-CL.mp4` },
-  { id: 'reel-38', number: 38, contestant: 'Atharv Shah', category: 'Drama', duration: 57, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/007f3ff9d9f444ac9aa78985bf3b60d0/1080p-wm-video-CL.mp4` },
-  { id: 'reel-39', number: 39, contestant: 'Myra Kapoor', category: 'Music', duration: 52, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/0080550a89884b0aadc5494c0d325949/1080p-wm-video-CL.mp4` },
-  { id: 'reel-40', number: 40, contestant: 'Vivaan Dutta', category: 'Dance', duration: 44, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/008c4285a9554236bddee67caa9b8d84/1080p-wm-video-CL.mp4` },
-  { id: 'reel-41', number: 41, contestant: 'Anvi Sinha', category: 'Comedy', duration: 39, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/009dc616912e401ca1abeff7e831902f/1080p-wm-video-CL.mp4` },
-  { id: 'reel-42', number: 42, contestant: 'Dhruv Chatterjee', category: 'Drama', duration: 55, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00a25b3c5cac47a4ab009e90988dd1b5/1080p-wm-video-CL.mp4` },
-  { id: 'reel-43', number: 43, contestant: 'Navya Arora', category: 'Music', duration: 50, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00ab7e15748f44ddbab731edba5c7c54/1080p-wm-video-CL.mp4` },
-  { id: 'reel-44', number: 44, contestant: 'Aarav Nambiar', category: 'Dance', duration: 43, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00ad202782774cccb7e27f655a1961ea/1080p-wm-video-CL.mp4` },
-  { id: 'reel-45', number: 45, contestant: 'Saanvi Goyal', category: 'Comedy', duration: 31, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00b24c98f945425f856bb52354b71133/1080p-wm-video-CL.mp4` },
-  { id: 'reel-46', number: 46, contestant: 'Rudra Bhatt', category: 'Drama', duration: 60, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00b2830f78a54047a725d5b93db2fbd1/1080p-wm-video-CL.mp4` },
-  { id: 'reel-47', number: 47, contestant: 'Shanaya Kohli', category: 'Music', duration: 47, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00bc5cbde75e467c959fce20a8b8d6d8/1080p-wm-video-CL.mp4` },
-  { id: 'reel-48', number: 48, contestant: 'Ayaan Prasad', category: 'Dance', duration: 42, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00c00fd300124d64ebff5833bf2bb673/1080p-wm-video-CL.mp4` },
-  { id: 'reel-49', number: 49, contestant: 'Pari Varma', category: 'Comedy', duration: 36, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00c0d0f0d6d84f1f8280e15d420bec73/1080p-wm-video-CL.mp4` },
-  { id: 'reel-50', number: 50, contestant: 'Veer Choudhury', category: 'Drama', duration: 53, thumbnail: 'user', videoUrl: `${R2_BASE_NEW}/videos/00c873b989844010a52c92646cc8011b/1080p-wm-video-CL.mp4` },
-];
+    if (error || !data) {
+      console.error('Failed to fetch reels:', error);
+      return [];
+    }
+
+    return data.map(function(r) {
+      return {
+        id: r.id,
+        number: r.reel_number,
+        contestant: r.contestant_name,
+        category: r.category,
+        duration: r.duration_seconds,
+        thumbnail: r.thumbnail_icon,
+        videoUrl: r.video_url
+      };
+    });
+  } catch (err) {
+    console.error('Fetch reels error:', err);
+    return [];
+  }
+}
+
+function deriveCategories(reels) {
+  var cats = [];
+  reels.forEach(function(r) {
+    if (cats.indexOf(r.category) === -1) cats.push(r.category);
+  });
+  return cats;
+}
 
 // ============================================
 // DEVICE MANAGER - Unique device tracking
@@ -118,17 +99,21 @@ class DeviceManager {
     return 'desktop';
   }
 
-  async registerWithSupabase(supabase, isJudge = false, judgeName = null) {
+  async registerWithSupabase(supabase, isJudge = false, judgeName = null, name = null, tokenId = null) {
     try {
+      const payload = {
+        device_id: this.deviceId,
+        device_type: this.deviceType,
+        is_judge: isJudge,
+        judge_name: judgeName,
+        last_seen_at: new Date().toISOString()
+      };
+      if (name) payload.name = name;
+      if (tokenId) payload.token_id = tokenId;
+
       const { data, error } = await supabase
         .from('voters')
-        .upsert({
-          device_id: this.deviceId,
-          device_type: this.deviceType,
-          is_judge: isJudge,
-          judge_name: judgeName,
-          last_seen_at: new Date().toISOString()
-        }, {
+        .upsert(payload, {
           onConflict: 'device_id'
         })
         .select()
@@ -207,13 +192,120 @@ class DeviceManager {
 }
 
 // ============================================
+// TOKEN AUTH MANAGER - Token-based access control
+// ============================================
+
+class TokenAuthManager {
+  constructor(deviceManager) {
+    this.deviceManager = deviceManager;
+    this._authenticated = false;
+    this._tokenData = null;
+  }
+
+  async validateToken(supabase, tokenString) {
+    if (!supabase) return { valid: false, error: 'Not connected to server' };
+    if (!tokenString || !tokenString.trim()) return { valid: false, error: 'Please enter a token' };
+
+    try {
+      const trimmed = tokenString.trim().toUpperCase();
+      console.log('Validating token:', trimmed);
+
+      // Add timeout to prevent hanging
+      const timeout = new Promise(function(resolve) {
+        setTimeout(function() { resolve({ data: null, error: { message: 'Request timed out' } }); }, 8000);
+      });
+
+      const query = supabase
+        .from('tokens')
+        .select('*')
+        .eq('token', trimmed)
+        .single();
+
+      const { data, error } = await Promise.race([query, timeout]);
+      console.log('Token query result:', { found: !!data, error: error?.message });
+
+      if (error || !data) return { valid: false, error: 'Invalid token' };
+
+      const currentDeviceId = this.deviceManager.deviceId;
+
+      // Token already used on a different device
+      if (data.is_used && data.device_id && data.device_id !== currentDeviceId) {
+        return { valid: false, error: 'Token already used on another device' };
+      }
+
+      // Bind token to device on first use
+      if (!data.is_used) {
+        await supabase
+          .from('tokens')
+          .update({
+            is_used: true,
+            device_id: currentDeviceId,
+            used_at: new Date().toISOString()
+          })
+          .eq('id', data.id);
+      }
+
+      // Register voter with name from token
+      const voterData = await this.deviceManager.registerWithSupabase(
+        supabase,
+        data.token_type === 'judge',
+        data.token_type === 'judge' ? data.person_name : null,
+        data.person_name,
+        data.id
+      );
+
+      if (voterData) {
+        // Link voter to token
+        await supabase
+          .from('tokens')
+          .update({ voter_id: voterData.id })
+          .eq('id', data.id);
+      }
+
+      this._authenticated = true;
+      this._tokenData = data;
+
+      // Store in localStorage for session persistence
+      localStorage.setItem('aifilms-token', trimmed);
+      localStorage.setItem('aifilms-token-data', JSON.stringify(data));
+
+      return { valid: true, tokenData: data };
+    } catch (err) {
+      console.error('Token validation failed:', err);
+      return { valid: false, error: 'Validation error' };
+    }
+  }
+
+  async restoreSession(supabase) {
+    const savedToken = localStorage.getItem('aifilms-token');
+    if (!savedToken) return false;
+
+    const result = await this.validateToken(supabase, savedToken);
+    return result.valid;
+  }
+
+  isAuthenticated() { return this._authenticated; }
+  getTokenData() { return this._tokenData; }
+  getPersonName() { return this._tokenData?.person_name || null; }
+  getCategory() { return this._tokenData?.category || null; }
+  getTokenType() { return this._tokenData?.token_type || null; }
+
+  logout() {
+    this._authenticated = false;
+    this._tokenData = null;
+    localStorage.removeItem('aifilms-token');
+    localStorage.removeItem('aifilms-token-data');
+  }
+}
+
+// ============================================
 // SUPABASE SYNC - Real-time + Database
 // ============================================
 
 class SupabaseSync {
   constructor() {
     this.listeners = new Map();
-    this.currentState = { reelIndex: 0, status: 'waiting' };
+    this.currentState = { reelId: null, status: 'waiting' };
     this.channel = null;
     this.presenceChannel = null;
     this.supabase = null;
@@ -258,6 +350,12 @@ class SupabaseSync {
           this.currentState = { ...this.currentState, ...payload };
           if (this.listeners.has('state-sync')) {
             this.listeners.get('state-sync').forEach(cb => cb(payload));
+          }
+        })
+        .on('broadcast', { event: 'category-change' }, ({ payload }) => {
+          console.log('Category changed:', payload.category);
+          if (this.listeners.has('category-change')) {
+            this.listeners.get('category-change').forEach(cb => cb(payload));
           }
         })
         .subscribe((status) => {
@@ -380,7 +478,11 @@ class SupabaseSync {
 
   getCurrentReel() {
     const state = this.getState();
-    return MOCK_REELS[state.reelIndex] || MOCK_REELS[0];
+    const reels = window.AIFilms ? window.AIFilms.reels : [];
+    if (state.reelId) {
+      return reels.find(r => r.id === state.reelId) || reels[0] || null;
+    }
+    return reels[0] || null;
   }
 
   getConnectedDevices() {
@@ -420,7 +522,7 @@ class VoteStore {
     this.localCache = new Map(); // Cache for quick lookups
   }
 
-  async saveVote(reelId, score, voterType = 'audience') {
+  async saveVote(reelId, score, voterType = 'audience', voterName = null, category = null) {
     const supabase = this.sync.getSupabase();
     if (!supabase) {
       console.error('Supabase not initialized');
@@ -434,15 +536,19 @@ class VoteStore {
     }
 
     try {
+      const payload = {
+        reel_id: reelId,
+        voter_id: voterId,
+        score: score,
+        voter_type: voterType,
+        updated_at: new Date().toISOString()
+      };
+      if (voterName) payload.voter_name = voterName;
+      if (category) payload.category = category;
+
       const { data, error } = await supabase
         .from('votes')
-        .upsert({
-          reel_id: reelId,
-          voter_id: voterId,
-          score: score,
-          voter_type: voterType,
-          updated_at: new Date().toISOString()
-        }, {
+        .upsert(payload, {
           onConflict: 'reel_id,voter_id'
         })
         .select()
@@ -488,9 +594,9 @@ class VoteStore {
         .select('score')
         .eq('reel_id', reelId)
         .eq('voter_id', voterId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
+      if (error) {
         console.error('Error getting vote:', error);
         return null;
       }
@@ -530,9 +636,9 @@ class VoteStore {
         .from('vote_aggregates')
         .select('*')
         .eq('reel_id', reelId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error getting stats:', error);
       }
 
@@ -568,7 +674,7 @@ class VoteStore {
     }
   }
 
-  async getAllStats() {
+  async getAllStats(categoryFilter = null) {
     const supabase = this.sync.getSupabase();
     if (!supabase) return [];
 
@@ -583,8 +689,13 @@ class VoteStore {
         return [];
       }
 
-      // Merge with reel data
-      return MOCK_REELS.map(reel => {
+      // Merge with reel data, optionally filter by category
+      let reels = window.AIFilms ? window.AIFilms.reels : [];
+      if (categoryFilter) {
+        reels = reels.filter(r => r.category === categoryFilter);
+      }
+
+      return reels.map(reel => {
         const agg = aggregates?.find(a => a.reel_id === reel.id) || {};
         return {
           ...reel,
@@ -645,9 +756,9 @@ class LocalSync {
   loadState() {
     try {
       const saved = localStorage.getItem('aifilms-state');
-      return saved ? JSON.parse(saved) : { reelIndex: 0, status: 'waiting' };
+      return saved ? JSON.parse(saved) : { reelId: null, status: 'waiting' };
     } catch {
-      return { reelIndex: 0, status: 'waiting' };
+      return { reelId: null, status: 'waiting' };
     }
   }
 
@@ -678,7 +789,11 @@ class LocalSync {
 
   getCurrentReel() {
     const state = this.getState();
-    return MOCK_REELS[state.reelIndex] || MOCK_REELS[0];
+    const reels = window.AIFilms ? window.AIFilms.reels : [];
+    if (state.reelId) {
+      return reels.find(r => r.id === state.reelId) || reels[0] || null;
+    }
+    return reels[0] || null;
   }
 
   getConnectedDevices() {
@@ -758,9 +873,9 @@ class LocalVoteStore {
 
     let finalScore = 0;
     if (judgeVotes.length > 0 && audienceVotes.length > 0) {
-      finalScore = (avgJudge * 10 * 0.6) + (avgAudience * 0.4);
+      finalScore = (avgJudge * 0.5) + (avgAudience * 0.5);
     } else if (judgeVotes.length > 0) {
-      finalScore = avgJudge * 10;
+      finalScore = avgJudge;
     } else if (audienceVotes.length > 0) {
       finalScore = avgAudience;
     }
@@ -776,8 +891,9 @@ class LocalVoteStore {
   }
 
   async getAllStats() {
+    const reels = window.AIFilms ? window.AIFilms.reels : [];
     const results = [];
-    for (const reel of MOCK_REELS) {
+    for (const reel of reels) {
       const stats = await this.getReelStats(reel.id);
       results.push({ ...reel, stats });
     }
@@ -795,6 +911,7 @@ class LocalVoteStore {
 
 if (!window.AIFilms) {
   const deviceManager = new DeviceManager();
+  const tokenAuth = new TokenAuthManager(deviceManager);
   const syncInstance = SYNC_MODE === 'supabase' ? new SupabaseSync() : new LocalSync();
   const voteStoreInstance = SYNC_MODE === 'supabase'
     ? new VoteStore(syncInstance, deviceManager)
@@ -804,16 +921,28 @@ if (!window.AIFilms) {
     sync: syncInstance,
     voteStore: voteStoreInstance,
     deviceManager: deviceManager,
-    MOCK_REELS,
+    tokenAuth: tokenAuth,
+    reels: [],
+    categories: [],
     SYNC_MODE,
-    ready: SYNC_MODE === 'local'
+    ready: SYNC_MODE === 'local',
+    findReel: function(reelId) {
+      return window.AIFilms.reels.find(function(r) { return r.id === reelId; }) || null;
+    }
   };
 
-  // For Supabase, register device and mark ready after connection
+  // For Supabase, register device, fetch reels, and mark ready after connection
   if (SYNC_MODE === 'supabase') {
     syncInstance.on('connected', async () => {
       // Register this device
       await deviceManager.registerWithSupabase(syncInstance.getSupabase());
+      // Try to restore token session
+      await tokenAuth.restoreSession(syncInstance.getSupabase());
+      // Fetch reels from database
+      const reels = await fetchReels(syncInstance.getSupabase());
+      window.AIFilms.reels = reels;
+      window.AIFilms.categories = deriveCategories(reels);
+      console.log('Loaded', reels.length, 'reels in', window.AIFilms.categories.length, 'categories');
       window.AIFilms.ready = true;
       window.dispatchEvent(new Event('aifilms-ready'));
     });

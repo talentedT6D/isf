@@ -80,6 +80,41 @@
       box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
     }
 
+    /* Category Badge - Below Judges Badge */
+    .category-badge {
+      position: fixed;
+      top: 7rem;
+      right: 1.5rem;
+      padding: 0.5rem 1rem;
+      background: linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #fb7185 100%);
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      z-index: 1000;
+      box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+    }
+
+    /* Judge Name - Below Logo */
+    .judge-name-label {
+      position: fixed;
+      top: 1.5rem;
+      left: 5.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--glass-dark-strong);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-light);
+      z-index: 1000;
+      white-space: nowrap;
+    }
+
     /* Floating gradient blobs for depth */
     .blob {
       position: fixed;
@@ -494,6 +529,36 @@
       border-color: #a855f7;
     }
 
+    /* Wrong category overlay */
+    .wrong-category-overlay {
+      z-index: 101;
+    }
+
+    .wrong-category-overlay .wrong-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 15px 40px rgba(245, 158, 11, 0.4);
+    }
+
+    .wrong-category-overlay .wrong-icon svg {
+      width: 40px;
+      height: 40px;
+      color: white;
+    }
+
+    .wrong-category-overlay p.waiting-category {
+      color: #f59e0b;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+    }
+
     /* Focus states for accessibility */
     .quick-btn:focus-visible,
     .submit-btn:focus-visible,
@@ -516,6 +581,12 @@
   <!-- Judges Portal Badge - TOP RIGHT -->
   <div class="judges-badge">Judges Portal</div>
 
+  <!-- Category Badge - Below Judges Badge -->
+  <div class="category-badge" id="categoryBadge"></div>
+
+  <!-- Judge Name Label - Next to Logo -->
+  <div class="judge-name-label" id="judgeNameLabel">Judge: ---</div>
+
   <!-- Floating blobs -->
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
@@ -537,7 +608,20 @@
     </div>
     <h2>Judge Vote Submitted!</h2>
     <p>Waiting for next reel...</p>
-    <button class="change-btn" id="changeVoteBtn">Change Vote</button>
+  </div>
+
+  <!-- Wrong category overlay -->
+  <div class="overlay wrong-category-overlay" id="wrongCategoryOverlay">
+    <div class="wrong-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    </div>
+    <h2>Not Your Category</h2>
+    <p id="wrongCategoryMsg">Waiting for reels...</p>
+    <p class="waiting-category" id="waitingCategoryLabel"></p>
   </div>
 
   <!-- Logo -->
@@ -694,18 +778,37 @@
       }
 
       function init() {
+        // Token verification: redirect if not authenticated
+        var judgeToken = localStorage.getItem('judgeToken');
+        if (!judgeToken) {
+          window.location.href = 'judges-portal.html';
+          return;
+        }
+
+        var judgeName = localStorage.getItem('judgeName') || 'Judge';
+        var judgeCategory = localStorage.getItem('judgeCategory') || '';
+
+        // Update UI with judge info
+        document.getElementById('judgeNameLabel').textContent = 'Judge: ' + judgeName;
+        if (judgeCategory) {
+          document.getElementById('categoryBadge').textContent = judgeCategory;
+        } else {
+          document.getElementById('categoryBadge').style.display = 'none';
+        }
+
         setupHorizontalSlider();
         setupQuickSelect();
         setSliderValue(50);
 
         var state = aifilms.sync.getState();
-        if (state.reelIndex !== undefined && state.status === 'playing') {
-          showReel(aifilms.MOCK_REELS[state.reelIndex]);
+        if (state.reelId && state.status === 'playing') {
+          var reel = aifilms.findReel(state.reelId);
+          if (reel) showReel(reel);
         }
 
         aifilms.sync.on('reel-change', function(data) {
-          var reel = aifilms.MOCK_REELS[data.reelIndex];
-          showReel(reel);
+          var reel = aifilms.findReel(data.reelId);
+          if (reel) showReel(reel);
         });
 
         document.getElementById('submitBtn').addEventListener('click', submitVote);
@@ -718,12 +821,30 @@
         // Reset vote state for new reel
         hasVoted = false;
 
-        // CRITICAL: Hide overlays FIRST
+        // CRITICAL: Hide all overlays FIRST
         document.getElementById('successOverlay').classList.remove('active');
         document.getElementById('waitingOverlay').classList.remove('active');
+        document.getElementById('wrongCategoryOverlay').classList.remove('active');
+
+        // Category restriction check
+        var judgeCategory = localStorage.getItem('judgeCategory') || '';
+        if (judgeCategory && reel.category && reel.category.toLowerCase() !== judgeCategory.toLowerCase()) {
+          // Wrong category - show wrong category overlay and hide voting UI
+          document.getElementById('wrongCategoryMsg').textContent = 'This reel is for "' + reel.category + '"';
+          document.getElementById('waitingCategoryLabel').textContent = 'Waiting for ' + judgeCategory + ' reels...';
+          document.getElementById('wrongCategoryOverlay').classList.add('active');
+
+          // Still update the reel counter
+          var catReelsWrong = aifilms.reels.filter(function(r) { return r.category === reel.category; });
+          document.getElementById('reelCounter').textContent = 'Reel ' + reel.number + ' of ' + catReelsWrong.length;
+          document.getElementById('contestantName').textContent = reel.contestant;
+          document.getElementById('category').textContent = reel.category;
+          return;
+        }
 
         // Update UI synchronously
-        document.getElementById('reelCounter').textContent = 'Reel ' + reel.number + ' of ' + aifilms.MOCK_REELS.length;
+        var catReels = aifilms.reels.filter(function(r) { return r.category === reel.category; });
+        document.getElementById('reelCounter').textContent = 'Reel ' + reel.number + ' of ' + catReels.length;
         document.getElementById('contestantName').textContent = reel.contestant;
         document.getElementById('category').textContent = reel.category;
 
@@ -774,8 +895,9 @@
       function submitVote() {
         if (!currentReel) return;
 
-        // voterType is 'judge' for judges portal
-        aifilms.voteStore.saveVote(currentReel.id, currentScore, 'judge');
+        // Pass voter_name and category along with the judge vote
+        var judgeName = localStorage.getItem('judgeName') || 'Judge';
+        aifilms.voteStore.saveVote(currentReel.id, currentScore, 'judge', judgeName, currentReel.category);
         aifilms.sync.broadcast('vote', {
           reelId: currentReel.id,
           score: currentScore,
@@ -792,12 +914,17 @@
         document.getElementById('successOverlay').classList.remove('active');
       }
 
+      // IMMEDIATE check - redirect before AIFilms even loads
+      if (!localStorage.getItem('judgeToken')) {
+        window.location.href = 'judges-portal.html';
+      }
+
       if (aifilms && aifilms.ready) {
         document.addEventListener('DOMContentLoaded', init);
       } else {
         window.addEventListener('aifilms-ready', init);
         document.addEventListener('DOMContentLoaded', function() {
-          if (window.AIFilms) {
+          if (window.AIFilms && window.AIFilms.ready) {
             aifilms = window.AIFilms;
             init();
           }
