@@ -1078,9 +1078,10 @@
       <header class="stage-header">
         <div class="status-badges">
           <div class="paused-badge" id="pausedBadge">PAUSED</div>
-          <div class="category-badge" id="categoryBadge">
+          <div class="category-badge" id="categoryBadge" style="cursor:pointer;" onclick="document.getElementById('changeCatBtn').click()">
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
             <span id="categoryBadgeText">All Categories</span>
+            <button id="changeCatBtn" style="background:rgba(255,255,255,0.15);border:none;color:white;font-family:inherit;font-size:0.65rem;font-weight:600;padding:0.2rem 0.5rem;border-radius:4px;cursor:pointer;margin-left:0.4rem;letter-spacing:0.03em;">CHANGE</button>
           </div>
           <div class="connection-badge">
             <span class="connection-dot"></span>
@@ -1313,6 +1314,11 @@
         setupButton('pauseBtn', togglePause);
         setupButton('muteBtn', toggleMute);
 
+        document.getElementById('changeCatBtn').addEventListener('click', function(e) {
+          e.stopPropagation();
+          changeCategory();
+        });
+
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
           if (e.key === 'ArrowRight') {
@@ -1333,6 +1339,8 @@
           } else if (e.key === 'm' || e.key === 'M') {
             triggerClick('muteBtn');
             toggleMute();
+          } else if (e.key === 'c' || e.key === 'C') {
+            changeCategory();
           }
         });
       }
@@ -1442,6 +1450,15 @@
           category: cat,
           syncTimestamp: Date.now()
         });
+      }
+
+      function changeCategory() {
+        // Clear saved category so picker shows fresh
+        localStorage.removeItem('aifilms-control-category');
+        localStorage.removeItem('aifilms-control-index');
+        // Re-render picker cards and show overlay
+        renderPickerCards();
+        document.getElementById('categoryPicker').classList.remove('hidden');
       }
 
       function filterByCategory(cat) {

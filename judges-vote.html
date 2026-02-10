@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Judges Portal - ISF</title>
   <link rel="icon" type="image/png" href="ISF logos_2.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -174,8 +174,10 @@
       display: flex;
       flex-direction: column;
       padding: 1.5rem;
-      padding-top: 180px;
-      overflow: hidden;
+      padding-top: 120px;
+      padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     /* Contestant card */
@@ -230,22 +232,41 @@
       color: white;
     }
 
+    .contestant-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      min-width: 0;
+      gap: 0.35rem;
+    }
+
     .contestant-details h2 {
       font-size: 1.4rem;
       font-weight: 700;
       color: var(--text-light);
-      margin-bottom: 0.25rem;
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
     }
 
     .contestant-category {
       display: inline-block;
-      padding: 0.3rem 0.8rem;
+      width: auto;
+      max-width: fit-content;
+      padding: 0.45rem 0.9rem 0.5rem 0.9rem;
       background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);
       border: 1px solid rgba(99, 102, 241, 0.3);
       border-radius: 100px;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 600;
+      line-height: 1;
       color: #a78bfa;
+      text-align: center;
+      box-sizing: border-box;
     }
 
     /* Score Display - Simple number, no animation */
@@ -291,7 +312,7 @@
       -webkit-backdrop-filter: blur(var(--glass-blur));
       border: 1px solid var(--glass-border);
       border-radius: 20px;
-      padding: 1.5rem;
+      padding: 1.5rem 1rem;
       margin-bottom: 1rem;
       position: relative;
       overflow: hidden;
@@ -359,7 +380,7 @@
       margin-top: 0.75rem;
       font-size: 0.75rem;
       color: var(--text-muted);
-      font-weight: 500;
+      font-weight: 600;
     }
 
     /* Quick select buttons - Fun labels */
@@ -573,6 +594,178 @@
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Extra small phones (iPhone SE, mini) - 320px-375px */
+    @media screen and (max-width: 375px) {
+      .logo-watermark {
+        width: 40px;
+        top: 1rem;
+        left: 1rem;
+      }
+
+      .reel-counter {
+        top: 1rem;
+        right: 1rem;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.7rem;
+      }
+
+      .judges-badge {
+        top: 3.5rem;
+        right: 1rem;
+        font-size: 0.65rem;
+        padding: 0.4rem 0.75rem;
+      }
+
+      .category-badge {
+        top: 5.8rem;
+        right: 1rem;
+        font-size: 0.65rem;
+        padding: 0.4rem 0.75rem;
+      }
+
+      .judge-name-label {
+        top: 1rem;
+        left: 4.5rem;
+        font-size: 0.7rem;
+        padding: 0.4rem 0.75rem;
+      }
+
+      .main-content {
+        padding: 1rem;
+        padding-top: 140px;
+        padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+      }
+
+      .contestant-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .contestant-avatar {
+        width: 50px;
+        height: 50px;
+      }
+
+      .contestant-avatar svg {
+        width: 25px;
+        height: 25px;
+      }
+
+      .contestant-details h2 {
+        font-size: 1.05rem;
+      }
+
+      .contestant-category {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.6rem;
+      }
+
+      .score-label {
+        font-size: 0.7rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .score-value-display {
+        font-size: 2.5rem;
+      }
+
+      .slider-container {
+        padding: 1rem;
+      }
+
+      .quick-select {
+        gap: 0.5rem;
+      }
+
+      .quick-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+      }
+
+      .submit-btn {
+        padding: 0.95rem;
+        font-size: 0.9rem;
+      }
+    }
+
+    /* Small phones (iPhone 12 mini, 13 mini) - 376px-390px */
+    @media screen and (min-width: 376px) and (max-width: 390px) {
+      .main-content {
+        padding-bottom: calc(1.75rem + env(safe-area-inset-bottom));
+      }
+
+      .contestant-details h2 {
+        font-size: 1.25rem;
+      }
+
+      .contestant-category {
+        font-size: 0.7rem;
+      }
+    }
+
+    /* Medium phones (iPhone 16 standard) - 391px-400px */
+    @media screen and (min-width: 391px) and (max-width: 400px) {
+      .main-content {
+        padding-top: 110px;
+        padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+      }
+
+      .contestant-card {
+        margin-bottom: 1.25rem;
+        padding: 1.15rem;
+      }
+
+      .contestant-details h2 {
+        font-size: 1.2rem;
+      }
+
+      .contestant-category {
+        font-size: 0.68rem;
+      }
+
+      .score-label {
+        font-size: 0.75rem;
+      }
+
+      .score-value-display {
+        font-size: 3.5rem;
+      }
+
+      .submit-btn {
+        padding: 1.05rem;
+      }
+    }
+
+    /* Larger phones (iPhone 14/15/16 Plus/Pro) - 401px-430px */
+    @media screen and (min-width: 401px) and (max-width: 430px) {
+      .main-content {
+        padding-top: 115px;
+      }
+
+      .contestant-details h2 {
+        font-size: 1.25rem;
+      }
+
+      .score-value-display {
+        font-size: 3.75rem;
+      }
+    }
+
+    /* Large phones (iPhone Pro Max, Plus, Android) - 431px-480px */
+    @media screen and (min-width: 431px) and (max-width: 480px) {
+      .main-content {
+        padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+      }
+    }
+
+    /* Tablets and landscape phones - 481px+ */
+    @media screen and (min-width: 481px) {
+      .main-content {
+        max-width: 600px;
+        margin: 0 auto;
       }
     }
   </style>
@@ -807,6 +1000,12 @@
         }
 
         aifilms.sync.on('reel-change', function(data) {
+          var reel = aifilms.findReel(data.reelId);
+          if (reel) showReel(reel);
+        });
+
+        aifilms.sync.on('state-sync', function(data) {
+          console.log('Judge received state sync:', data.reelId);
           var reel = aifilms.findReel(data.reelId);
           if (reel) showReel(reel);
         });
